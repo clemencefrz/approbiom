@@ -2,18 +2,44 @@ import Button from '@shared/components/Button'
 import './App.css'
 import { useEffect, useState } from 'react'
 
-// No import for `grist`: grist-plugin-api.js is loaded by a <script> tag in
-// index.html and installs `grist` as a global. shared/grist/grist-plugin-api.d.ts
-// is what makes it typed.
+const REQUIRED_ACCESS = 'full'
 
 export default function App() {
     const [records, setRecords] = useState<grist.RowRecord[] | null>(null)
+    const [accessLevel, setAccessLevel] = useState<string | null>(null)
+
     useEffect(() => {
         grist.onRecords((records) => {
             setRecords(records)
         })
-        grist.ready()
+        grist.onOptions((_options, settings) => {
+            setAccessLevel(settings.accessLevel)
+        })
+        grist.ready({
+            requiredAccess: REQUIRED_ACCESS,
+        })
     }, [])
+
+    if (accessLevel === null) {
+        return (
+            <main className="app">
+                <p>Connexion à Grist en cours…</p>
+            </main>
+        )
+    }
+
+    if (accessLevel !== REQUIRED_ACCESS) {
+        return (
+            <main className="app">
+                <p>
+                    Ce widget a besoin d’un accès complet au document. Ouvrez le
+                    panneau de configuration du widget et choisissez « Accès
+                    complet au document ».
+                </p>
+            </main>
+        )
+    }
+
     return (
         <main className="app">
             <h1>Hello world — Widget A</h1>
