@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "lint": "oxlint",
-    "preview": "vite preview"
+    "build:staging": "node scripts/build.mjs",
+    "build:prod": "node scripts/promote.mjs",
+    "lint": "oxlint"
   },
   "dependencies": {
     "react": "^19.2.7",
