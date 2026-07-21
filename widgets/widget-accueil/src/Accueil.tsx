@@ -1,4 +1,4 @@
-import type { Plan_d_approvisionnement } from '@shared/grist-approbiom/tables'
+import type { Plan_d_approvisionnement } from '@shared/grist/approbiom/tables'
 
 export type AccueilProps = {
     plansApprovisionnement: Plan_d_approvisionnement[]

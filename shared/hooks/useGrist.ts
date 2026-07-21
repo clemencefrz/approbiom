@@ -2,9 +2,9 @@ import {
     type TableId,
     type TableRowMap,
     LOADED_TABLE_IDS,
-} from '@shared/grist-approbiom/tableIds'
+} from '@shared/grist/approbiom/tableIds'
 import { useState, useCallback, useEffect } from 'react'
-import { fetchRows } from '../utils/fetchRows'
+import { fetchRows } from '@shared/grist/api/client'
 
 const REQUIRED_ACCESS_FULL_LEVEL = 'full'
 
