@@ -1,0 +1,21 @@
+/* The indent is what says an option belongs to the group above it, so it is
+   part of the component rather than a skin over it. The options are siblings of
+   the group's checkbox in the markup — this rule is the only thing that groups
+   them visually. */
+.shared-multi-select__group-options {
+    padding-left: 1.5rem;
+}
+
+/* Hiding the legend cannot be done in HTML alone: `hidden` and `display: none`
+   take it out of the accessibility tree too, and the whole point is to keep it
+   as the accessible name of the group. */
+.shared-multi-select__legend--hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    /* Clipped rather than sized to zero: a zero-sized box is dropped from the
+       accessibility tree by some screen readers. */
+    clip-path: inset(50%);
+    overflow: hidden;
+    white-space: nowrap;
+}
