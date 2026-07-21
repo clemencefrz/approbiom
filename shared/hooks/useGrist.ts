@@ -1,14 +1,8 @@
-import {
-    type TableId,
-    type TableRowMap,
-    LOADED_TABLE_IDS,
-} from '@shared/grist/approbiom/tableIds'
+import { getApprobiomTables } from '@shared/grist/approbiom/getApprobiomTables'
+import type { ApprobiomTables } from '@shared/grist/approbiom/model'
 import { useState, useCallback, useEffect } from 'react'
-import { fetchRows } from '@shared/grist/api/client'
 
 const REQUIRED_ACCESS_FULL_LEVEL = 'full'
-
-type GristData = { [K in TableId]: TableRowMap[K][] }
 
 type GristState =
     | { status: 'connecting'; data: null; error: null; accessLevel: null }
@@ -19,7 +13,12 @@ type GristState =
           accessLevel: string
       }
     | { status: 'error'; data: null; error: Error; accessLevel: string | null }
-    | { status: 'ready'; data: GristData; error: null; accessLevel: string }
+    | {
+          status: 'ready'
+          data: ApprobiomTables
+          error: null
+          accessLevel: string
+      }
 
 export type UseGristResult = GristState & { refetch: () => void }
 
@@ -75,13 +74,9 @@ export function useGrist(): UseGristResult {
                 accessLevel,
             })
 
-            const tables = await Promise.all(LOADED_TABLE_IDS.map(fetchRows))
+            const data = await getApprobiomTables()
 
             if (cancelled) return
-
-            const data = Object.fromEntries(
-                LOADED_TABLE_IDS.map((id, i) => [id, tables[i]])
-            ) as GristData
 
             setState({
                 status: 'ready',
