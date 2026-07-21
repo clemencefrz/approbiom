@@ -7,7 +7,7 @@ export type AccueilProps = {
 export default function Accueil({ plansApprovisionnement }: AccueilProps) {
     return (
         <div>
-            <h1>Hello World</h1>
+            <h1>Accueil</h1>
             {plansApprovisionnement.map((plan) => plan.Appel_a_projet).join()}
         </div>
     )
