@@ -38,4 +38,17 @@ export type DataTableProps<T> = {
     // separate `clickable` flag that could contradict it. Requiring a `label`
     // is what stops a clickable row from shipping without an accessible name.
     rowAction?: RowAction<T>
+    // Selection is controlled by the parent: the table renders what it is
+    // given and reports back what the user asked for, it never holds a
+    // selection of its own. Rows are matched by identity, so the objects handed
+    // back are the very ones passed in `rows`.
+    selectedRows?: readonly T[]
+    // Providing this is what turns the selection column on.
+    onSelectionChange?: (rows: T[]) => void
+    // Accessible name of a row's checkbox — "Sélectionner le plan Plan Nord"
+    // rather than a bare position. DSFR hides this text visually inside a fixed
+    // cell but keeps it as the name, so it is worth writing properly. Without
+    // it the table falls back to the row's position, which is understandable
+    // but says nothing about which row is being selected.
+    selectionLabel?: (row: T) => string
 }
