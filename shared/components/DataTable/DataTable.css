@@ -1,52 +1,13 @@
 /* CSS lives next to its component: DataTable.tsx imports this file directly,
    so the styles follow the component into whichever widget uses it.
 
-   Very little is needed here. `fr-enlarge-button` already gives us the enlarged
-   click zone, the hover feedback (`--hover`, under `@media (hover: hover)`) and
-   the focus ring drawn around the whole row — all from DSFR core. */
-
-/* The action button fills a data cell, so it has to read as that cell's text
-   rather than as a DSFR button. Core already resets appearance, border, colour
-   and font; what is left is the padding and the centring. */
-.shared-data-table__row-action {
-    padding: 0;
-    text-align: left;
-    cursor: pointer;
-}
-
-/* The enlarged click zone is an overlay (`::before`, `z-index: 1`) spread over
-   the entire row, so anything else interactive in that row would sit underneath
-   it and stop responding to clicks. Raising those elements above the overlay
-   keeps them working, and is what makes a link or a button in another cell take
-   its own click instead of the row's.
-
-   The action button itself is excluded: giving it `position: relative` would
-   make its own overlay resolve against the button rather than the row, which is
-   precisely what we are relying on. */
-.fr-enlarge-button
-    :is(a[href], button, input, select, textarea, [role='button']):not(
-        .shared-data-table__row-action
-    ) {
-    position: relative;
-    z-index: 2;
-}
-
-/* --- Selection -------------------------------------------------------------
-
-   The sticky column itself is not implemented here: `fr-cell--fixed` is DSFR's
-   own class and already carries `position: sticky`, `left: 0` and a z-index,
-   and DSFR paints every cell opaque (`--background-default-grey` on `td`,
-   `--background-alt-grey` on `thead th`) so scrolled content cannot show
-   through. The blue outline of a selected row comes from DSFR too, keyed on
-   `tr[aria-selected=true]`, borders between adjacent selected rows included. */
-
-/* DSFR gives fixed cells `z-index: 1` — the same layer as the enlarged click
-   zone of a row action, which comes later in the DOM and would therefore win
-   and swallow clicks on the checkboxes. One step up keeps the column usable in
-   a table that has both. */
-.fr-table__content .fr-cell--fixed {
-    z-index: 2;
-}
+   Only one rule is needed. The sticky selection column is not implemented here:
+   `fr-cell--fixed` is DSFR's own class and already carries `position: sticky`,
+   `left: 0` and a z-index, and DSFR paints every cell opaque
+   (`--background-default-grey` on `td`, `--background-alt-grey` on `thead th`)
+   so scrolled content cannot show through. The blue outline of a selected row
+   comes from DSFR too, keyed on `tr[aria-selected=true]`, borders between
+   adjacent selected rows included. */
 
 /* The tint has to be set on the cells, not on the row: DSFR paints each cell
    with an opaque background, so a colour on the `<tr>` would sit behind them

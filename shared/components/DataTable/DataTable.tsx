@@ -5,13 +5,12 @@ import '@gouvfr/dsfr/dist/component/table/table.main.min.css'
 import '@gouvfr/dsfr/dist/component/checkbox/checkbox.main.min.css'
 import './DataTable.css'
 import { useId } from 'react'
-import type { Column, DataTableProps } from './DataTable.types'
+import type { DataTableProps } from './DataTable.types'
 
 export default function DataTable<T>({
     caption,
     rows,
     columns,
-    rowAction,
     selectedRows,
     onSelectionChange,
     selectionLabel,
@@ -37,29 +36,6 @@ export default function DataTable<T>({
         // clicked in. `selectedRows` itself is never touched, and the row
         // objects are passed through by reference.
         onSelectionChange?.(rows.filter((candidate) => next.has(candidate)))
-    }
-
-    // The cell named by `rowAction.columnId` wraps its content in a button;
-    // every other cell renders exactly as it did before. The button is what
-    // carries the interactivity — DSFR only widens its click zone — so a table
-    // without a `rowAction` stays entirely non-interactive.
-    function renderCell(row: T, column: Column<T>) {
-        const content = column.render(row)
-
-        if (rowAction?.columnId !== column.id) return content
-
-        return (
-            <button
-                type="button"
-                className="shared-data-table__row-action"
-                // The visible text is the cell content; this says what
-                // activating it does.
-                aria-label={rowAction.label(row)}
-                onClick={() => rowAction.onActivate(row)}
-            >
-                {content}
-            </button>
-        )
     }
 
     return (
@@ -150,14 +126,9 @@ export default function DataTable<T>({
                                                     : undefined
                                             }
                                             className={
-                                                [
-                                                    rowAction &&
-                                                        'fr-enlarge-button',
-                                                    isSelected &&
-                                                        'shared-data-table__row--selected',
-                                                ]
-                                                    .filter(Boolean)
-                                                    .join(' ') || undefined
+                                                isSelected
+                                                    ? 'shared-data-table__row--selected'
+                                                    : undefined
                                             }
                                         >
                                             {isSelectable && (
@@ -190,7 +161,7 @@ export default function DataTable<T>({
                                             )}
                                             {columns.map((column) => (
                                                 <td key={column.id}>
-                                                    {renderCell(row, column)}
+                                                    {column.render(row)}
                                                 </td>
                                             ))}
                                         </tr>
