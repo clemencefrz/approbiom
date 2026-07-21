@@ -2,13 +2,38 @@
 // row selection, which this component does not do. Horizontal scrolling is pure
 // CSS (`.fr-table__container { overflow: auto }`).
 import '@gouvfr/dsfr/dist/component/table/table.main.min.css'
-import type { DataTableProps } from './DataTable.types'
+import './DataTable.css'
+import type { Column, DataTableProps } from './DataTable.types'
 
 export default function DataTable<T>({
     caption,
     rows,
     columns,
+    rowAction,
 }: DataTableProps<T>) {
+    // The cell named by `rowAction.columnId` wraps its content in a button;
+    // every other cell renders exactly as it did before. The button is what
+    // carries the interactivity — DSFR only widens its click zone — so a table
+    // without a `rowAction` stays entirely non-interactive.
+    function renderCell(row: T, column: Column<T>) {
+        const content = column.render(row)
+
+        if (rowAction?.columnId !== column.id) return content
+
+        return (
+            <button
+                type="button"
+                className="shared-data-table__row-action"
+                // The visible text is the cell content; this says what
+                // activating it does.
+                aria-label={rowAction.label(row)}
+                onClick={() => rowAction.onActivate(row)}
+            >
+                {content}
+            </button>
+        )
+    }
+
     return (
         <div className="fr-table">
             <div className="fr-table__wrapper">
@@ -36,10 +61,17 @@ export default function DataTable<T>({
                                     and are the point at which callers should
                                     start supplying a stable key themselves. */}
                                 {rows.map((row, rowIndex) => (
-                                    <tr key={rowIndex}>
+                                    <tr
+                                        key={rowIndex}
+                                        className={
+                                            rowAction
+                                                ? 'fr-enlarge-button'
+                                                : undefined
+                                        }
+                                    >
                                         {columns.map((column) => (
                                             <td key={column.id}>
-                                                {column.render(row)}
+                                                {renderCell(row, column)}
                                             </td>
                                         ))}
                                     </tr>
