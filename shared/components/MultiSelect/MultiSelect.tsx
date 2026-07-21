@@ -9,7 +9,7 @@ import '@gouvfr/dsfr/dist/component/button/button.main.min.css'
 import '@gouvfr/dsfr/dist/utility/icons/icons-system/icons-system.main.min.css'
 
 import './MultiSelect.css'
-import { useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type {
     MultiSelectGroup,
     MultiSelectItem,
@@ -38,6 +38,49 @@ export default function MultiSelect<T>({
     const descriptionId = `${id}-description`
 
     const [isOpen, setIsOpen] = useState(false)
+
+    // Wraps the control and the panel both, so "outside" is one containment
+    // test rather than two — and clicking the control itself never reaches the
+    // handler below, leaving its own toggle to do the closing.
+    const rootRef = useRef<HTMLDivElement>(null)
+    const triggerRef = useRef<HTMLButtonElement>(null)
+
+    // Escape is the keyboard's half of dismissing the panel: the click-outside
+    // below is mouse and touch only, and without this a keyboard user would be
+    // left with a panel they cannot close over content they cannot see.
+    function closeOnEscape(event: React.KeyboardEvent) {
+        if (!isOpen || event.key !== 'Escape') return
+
+        setIsOpen(false)
+        // Focus is inside the panel that is about to disappear, so it has to be
+        // put back somewhere deliberate — the control the user opened it from.
+        // Dropping it would send the user back to the top of the document.
+        triggerRef.current?.focus()
+    }
+
+    useEffect(() => {
+        // Nothing to dismiss, so nothing to listen for.
+        if (!isOpen) return
+
+        function closeOnClickOutside(event: MouseEvent) {
+            if (!rootRef.current?.contains(event.target as Node))
+                setIsOpen(false)
+        }
+
+        // The listener is on the document rather than on a backdrop element:
+        // a backdrop would swallow the click the user actually meant, so
+        // dismissing the panel would cost them an extra click on whatever they
+        // were aiming at.
+        //
+        // `mousedown` rather than `click` — the panel is positioned absolutely,
+        // so closing it reflows nothing and the target cannot move out from
+        // under the cursor between press and release.
+        document.addEventListener('mousedown', closeOnClickOutside)
+
+        return () => {
+            document.removeEventListener('mousedown', closeOnClickOutside)
+        }
+    }, [isOpen])
 
     // Selection is controlled: this is a read of the prop, never state.
     const selected = new Set(selectedValues)
@@ -183,7 +226,15 @@ export default function MultiSelect<T>({
     const allSelected = isAllSelected(allOptions)
 
     return (
-        <div className="fr-select-group shared-multi-select">
+        // The handler sits on the wrapper rather than on the document: Escape
+        // should only dismiss the panel when the focus is actually inside this
+        // component, and a keydown reaches here by bubbling from wherever that
+        // focus is — the control or any option.
+        <div
+            className="fr-select-group shared-multi-select"
+            ref={rootRef}
+            onKeyDown={closeOnEscape}
+        >
             {/* `htmlFor` on a `<button>` is valid — a button is a labelable
                 element — so clicking the libellé focuses the control. The
                 accessible name is spelled out with `aria-labelledby` all the
@@ -200,6 +251,7 @@ export default function MultiSelect<T>({
             <button
                 type="button"
                 id={triggerId}
+                ref={triggerRef}
                 className="fr-select shared-multi-select__trigger"
                 aria-labelledby={`${labelId} ${triggerId}`}
                 aria-describedby={description ? descriptionId : undefined}

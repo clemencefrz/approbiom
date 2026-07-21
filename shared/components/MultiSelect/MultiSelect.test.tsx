@@ -66,6 +66,75 @@ describe('MultiSelect', () => {
         expect(getTrigger().getAttribute('aria-expanded')).toBe('true')
     })
 
+    it('closes the options panel when a click lands outside it', () => {
+        render(<ControlledMultiSelect />)
+        open()
+
+        // `mousedown` rather than `click`: that is the event the component
+        // dismisses on, and firing `click` alone would pass for the wrong
+        // reason — or rather, would not pass at all.
+        fireEvent.mouseDown(document.body)
+
+        expect(screen.queryAllByRole('checkbox')).toHaveLength(0)
+        expect(getTrigger().getAttribute('aria-expanded')).toBe('false')
+    })
+
+    it('closes the options panel when Escape is pressed', () => {
+        render(<ControlledMultiSelect />)
+        open()
+
+        // Fired from inside the panel, which is where the focus is once the
+        // user has tabbed into the options.
+        fireEvent.keyDown(getCheckbox('Bas-Rhin'), { key: 'Escape' })
+
+        expect(screen.queryAllByRole('checkbox')).toHaveLength(0)
+        expect(getTrigger().getAttribute('aria-expanded')).toBe('false')
+    })
+
+    it('returns the focus to the trigger when Escape closes the panel', () => {
+        render(<ControlledMultiSelect />)
+        open()
+
+        fireEvent.keyDown(getCheckbox('Bas-Rhin'), { key: 'Escape' })
+
+        // Without this the focus would sit on an element that no longer exists
+        // and the user would be dropped back at the top of the document.
+        expect(document.activeElement).toBe(getTrigger())
+    })
+
+    it('leaves the options panel open on any other key', () => {
+        render(<ControlledMultiSelect />)
+        open()
+
+        fireEvent.keyDown(getCheckbox('Bas-Rhin'), { key: 'Enter' })
+
+        expect(screen.getAllByRole('checkbox')).toHaveLength(6)
+    })
+
+    it('keeps the options panel open when a click lands inside it', () => {
+        render(<ControlledMultiSelect />)
+        open()
+
+        // Ticking an option is a click inside the panel, and it has to leave
+        // the panel alone — otherwise no one could ever pick two options.
+        fireEvent.mouseDown(getCheckbox('Bas-Rhin'))
+
+        expect(screen.getAllByRole('checkbox')).toHaveLength(6)
+    })
+
+    it('closes the options panel when the trigger is clicked again', () => {
+        render(<ControlledMultiSelect />)
+        open()
+
+        // The trigger sits inside the component, so the outside-click handler
+        // has to ignore it and leave the closing to its own toggle. Were both
+        // to fire, the panel would close and reopen in the same gesture.
+        fireEvent.mouseDown(getTrigger())
+        fireEvent.click(getTrigger())
+
+        expect(screen.queryAllByRole('checkbox')).toHaveLength(0)
+    })
+
     it('selects an ungrouped option when its checkbox is clicked', () => {
         render(<ControlledMultiSelect />)
         open()
