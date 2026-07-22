@@ -1,4 +1,3 @@
-import '@gouvfr/dsfr/dist/component/tag/tag.main.min.css'
 import '@gouvfr/dsfr/dist/component/button/button.main.min.css'
 import '@gouvfr/dsfr/dist/component/link/link.main.min.css'
 import '@gouvfr/dsfr/dist/utility/icons/icons-user/icons-user.main.min.css'
@@ -7,6 +6,11 @@ import './Accueil.css'
 import DataTable, { type Column } from '@shared/components/DataTable'
 import MultiSelect from '@shared/components/MultiSelect'
 import SearchBar from '@shared/components/SearchBar'
+import Tag from '@shared/components/Tag'
+import TagNature from './components/TagNature'
+import TagStatut from './components/TagStatut'
+import TagType from './components/TagType'
+import TagUsage from './components/TagUsage'
 import {
     APPEL_A_PROJET_OPTIONS,
     AVIS_CRB_OPTIONS,
@@ -14,45 +18,9 @@ import {
     PLANS,
     STATUT_OPTIONS,
 } from './Accueil.data'
-import type {
-    AvisCrb,
-    PlanNature,
-    PlanRow,
-    PlanStatut,
-    PlanType,
-    PlanUsage,
-} from './Accueil.types'
+import type { AvisCrb, PlanRow, PlanStatut } from './Accueil.types'
 import { useState } from 'react'
 import { getFilteredRows } from './utils'
-
-const TYPE_COLOR = {
-    création: 'fr-tag--yellow-tournesol',
-    modification: 'fr-tag--pink-tuile',
-} satisfies Record<PlanType, string>
-
-const USAGE_COLOR = {
-    énergie: 'fr-tag--blue-ecume',
-    matériau: 'fr-tag--purple-glycine',
-    chimie: 'fr-tag--blue-cumulus',
-} satisfies Record<PlanUsage, string>
-
-const NATURE_COLOR = {
-    prévision: '',
-    constat: 'fr-tag--blue-ecume',
-} satisfies Record<PlanNature, string>
-
-const STATUT_COLOR = {
-    projet: 'fr-tag--purple-glycine',
-    'en fonctionnement': 'fr-tag--green-emeraude',
-    abandonné: '',
-    obsolète: 'fr-tag--yellow-moutarde',
-} satisfies Record<PlanStatut, string>
-
-// DSFR ships the colour of a tag for its clickable forms only, so the classes
-// above are painted in Accueil.css, with the design system's own tokens.
-function tag(label: string, color: string) {
-    return <p className={`fr-tag fr-tag--sm ${color}`}>{label}</p>
-}
 
 const columns: readonly Column<PlanRow>[] = [
     {
@@ -75,7 +43,7 @@ const columns: readonly Column<PlanRow>[] = [
         header: 'Type de plan',
         render: (plan) => (
             <>
-                {tag(plan.type, TYPE_COLOR[plan.type])}
+                <TagType type={plan.type} />
                 {plan.version && (
                     <span className="accueil__version">{plan.version}</span>
                 )}
@@ -85,24 +53,30 @@ const columns: readonly Column<PlanRow>[] = [
     {
         id: 'usage',
         header: 'Usage',
-        render: (plan) => tag(plan.usage, USAGE_COLOR[plan.usage]),
+        render: (plan) => <TagUsage usage={plan.usage} />,
     },
     {
         id: 'mise-en-service',
         header: 'Mise en service projet',
+        // The only tag on the page that stands for nothing in the domain — it
+        // says a year is missing — so it is drawn from the generic component
+        // rather than given a component of its own.
         render: (plan) =>
-            plan.miseEnServiceProjet ?? tag('non', 'fr-tag--pink-macaron'),
+            plan.miseEnServiceProjet ?? (
+                <Tag color="pink-macaron" size="sm">
+                    non
+                </Tag>
+            ),
     },
     {
         id: 'nature-donnee',
         header: 'Nature de la donnée',
-        render: (plan) =>
-            tag(plan.natureDonnee, NATURE_COLOR[plan.natureDonnee]),
+        render: (plan) => <TagNature nature={plan.natureDonnee} />,
     },
     {
         id: 'statut',
         header: 'Statut',
-        render: (plan) => tag(plan.statut, STATUT_COLOR[plan.statut]),
+        render: (plan) => <TagStatut statut={plan.statut} />,
     },
     {
         id: 'action',
