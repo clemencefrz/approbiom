@@ -11,6 +11,7 @@ export default function DataTable<T>({
     caption,
     rows,
     columns,
+    bordered = false,
     selectedRows,
     onSelectionChange,
     selectionLabel,
@@ -39,7 +40,9 @@ export default function DataTable<T>({
     }
 
     return (
-        <div className="fr-table">
+        // `fr-table--bordered` belongs on the root: DSFR keys the rules of every
+        // cell off it, so it cannot sit on the table element itself.
+        <div className={`fr-table ${bordered ? 'fr-table--bordered' : ''}`}>
             <div className="fr-table__wrapper">
                 <div className="fr-table__container">
                     <div className="fr-table__content">
@@ -55,7 +58,7 @@ export default function DataTable<T>({
                                         // accessible name.
                                         <th
                                             scope="col"
-                                            className="fr-cell--fixed"
+                                            className="fr-cell--fixed "
                                         >
                                             <div className="fr-checkbox-group fr-checkbox-group--sm">
                                                 <input
