@@ -43,6 +43,22 @@ describe('App Widget Accueil', () => {
         ).toBeDefined()
     })
 
+    it('displays the "not in a Grist iframe" message when not in a Grist custom widget', () => {
+        vi.mocked(useGrist).mockReturnValue({
+            status: 'grist undefined',
+            data: null,
+            error: null,
+            accessLevel: null,
+            refetch: () => '',
+        })
+
+        render(<App />)
+
+        expect(
+            screen.getByText('Information : connexion à Grist en cours…')
+        ).toBeDefined()
+    })
+
     it('displays the loading message when Grist data is being fetched', () => {
         vi.mocked(useGrist).mockReturnValue({
             status: 'loading',

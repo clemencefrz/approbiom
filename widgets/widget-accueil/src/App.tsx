@@ -1,6 +1,7 @@
 import { useGrist } from '@shared/hooks/useGrist'
 import Alert from '@shared/components/Alert'
 import Accueil from './Accueil'
+import { FAKE_PLANS } from './fakePlans'
 
 export default function App() {
     const gristState = useGrist()
@@ -12,8 +13,17 @@ export default function App() {
                     Information : connexion à Grist en cours…
                 </Alert>
             )}
-
-            {gristState.status === 'no grist' && <p>Pas de grist ici !</p>}
+            {gristState.status === 'grist undefined' && (
+                <>
+                    <Alert severity="warning" title="Données fictives">
+                        Avertissement : cette page n’est pas ouverte dans Grist,
+                        il n’y a donc aucun document à lire. Les plans affichés
+                        ci-dessous sont inventés et servent uniquement à montrer
+                        l’interface : aucun ne correspond à un dossier réel.
+                    </Alert>
+                    <Accueil plansApprovisionnement={FAKE_PLANS} />
+                </>
+            )}
 
             {gristState.status === 'denied' && (
                 <Alert severity="warning" title="Accès insuffisant">
