@@ -12,6 +12,7 @@ export default function DataTable<T>({
     rows,
     columns,
     bordered = false,
+    stickyHeader = false,
     selectedRows,
     onSelectionChange,
     selectionLabel,
@@ -39,10 +40,18 @@ export default function DataTable<T>({
         onSelectionChange?.(rows.filter((candidate) => next.has(candidate)))
     }
 
+    // Both modifiers key off the root: DSFR reaches every cell from there, so
+    // neither can sit on the table element itself.
+    const rootClassName = [
+        'fr-table',
+        bordered && 'fr-table--bordered',
+        stickyHeader && 'shared-data-table--sticky-header',
+    ]
+        .filter(Boolean)
+        .join(' ')
+
     return (
-        // `fr-table--bordered` belongs on the root: DSFR keys the rules of every
-        // cell off it, so it cannot sit on the table element itself.
-        <div className={`fr-table ${bordered ? 'fr-table--bordered' : ''}`}>
+        <div className={rootClassName}>
             <div className="fr-table__wrapper">
                 <div className="fr-table__container">
                     <div className="fr-table__content">
@@ -58,7 +67,7 @@ export default function DataTable<T>({
                                         // accessible name.
                                         <th
                                             scope="col"
-                                            className="fr-cell--fixed "
+                                            className="fr-cell--fixed"
                                         >
                                             <div className="fr-checkbox-group fr-checkbox-group--sm">
                                                 <input
