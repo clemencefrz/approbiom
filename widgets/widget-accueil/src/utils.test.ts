@@ -1,101 +1,116 @@
 import { describe, expect, it } from 'vitest'
-import type { PlanRow } from './Accueil.types'
+import type { Plan_d_approvisionnement } from '@shared/grist/approbiom/tables'
 import { getFilteredRows } from './utils'
 
-// An object rather than a growing list of positional arguments: only the fields
-// a test is about are worth spelling out, and the rest never varies.
-function planWith(row: Partial<PlanRow>): PlanRow {
+function planWith(
+    row: Partial<Plan_d_approvisionnement>
+): Plan_d_approvisionnement {
     return {
-        id: 1,
-        nom: 'Plan',
-        statut: 'projet',
-        departementDeSituation: 'Poitiers (86)',
-        appelAProjet: 'CRA NA (2024)',
-        avisCrb: 'favorable',
-        type: 'création',
-        usage: 'énergie',
-        miseEnServiceProjet: 2025,
-        natureDonnee: 'prévision',
+        Nom: 'Plan',
+        Statut: 'projet',
+        Departement_de_situation: 'Poitiers (86)',
+        Appel_a_projet: 'CHALEUR+ (2024)',
+        Type_de_plan: 'création',
+        Usage_principal: 'énergie',
+        Mise_en_service_projet: '2025',
+        Nature_Donnee: 'prévision',
+        id_pa: 1,
+        Installation: 1,
+        Installation_Nom: 'Plan',
+        Mise_en_service_Projet_raw: null,
+        MES_Reel: null,
+        Derniere_mise_a_jour: null,
+        Commentaire: '',
+        deprecie_Synthese: '',
+        est_Filtre_Dans_Accueil: null,
+        Ouvrir_la_fiche: null,
         ...row,
     }
 }
 
-// Two of the three share a statut and a lieu, so filtering on either has
-// something to keep and something to drop. The third carries no appel à projet:
-// that empty string is a value the filter has to be able to select.
-const rcu = planWith({
-    id: 1,
-    nom: 'RCU Grand Poitiers 1 Biard',
-    statut: 'projet',
-    departementDeSituation: 'Poitiers (86)',
-    appelAProjet: 'CRA NA (2024)',
-    avisCrb: 'favorable',
+const valFleuri = planWith({
+    id_pa: 1,
+    Nom: 'RCU Val-Fleuri 1',
+    Statut: 'projet',
+    Departement_de_situation: 'Poitiers (86)',
+    Appel_a_projet: 'CHALEUR+ (2024)',
 })
-const biosyl = planWith({
-    id: 2,
-    nom: 'Biosyl Limousin C',
-    statut: 'abandonné',
-    departementDeSituation: 'Guéret (23)',
-    appelAProjet: 'GRANULE (2023)',
-    avisCrb: 'défavorable',
+const belOrme = planWith({
+    id_pa: 2,
+    Nom: 'Chaufferie de Bel-Orme',
+    Statut: 'abandonné',
+    Departement_de_situation: 'Guéret (23)',
+    Appel_a_projet: 'GRANULÉS NA (2023)',
 })
-const orpinia = planWith({
-    id: 5,
-    nom: 'ORPINIA phase 1',
-    statut: 'projet',
-    departementDeSituation: 'Poitiers (86)',
-    appelAProjet: '',
-    avisCrb: 'en attente',
+const plaineSud = planWith({
+    id_pa: 3,
+    Nom: 'PLAINE-SUD phase 1',
+    Statut: 'projet',
+    Departement_de_situation: 'Poitiers (86)',
+    Appel_a_projet: '',
 })
 
-const plans: readonly PlanRow[] = [rcu, biosyl, orpinia]
+const plans: readonly Plan_d_approvisionnement[] = [
+    valFleuri,
+    belOrme,
+    plaineSud,
+]
 
 describe('getFilteredRows', () => {
     describe('on nom', () => {
         it('keeps the rows whose name contains the query', () => {
-            expect(getFilteredRows(plans, { nom: 'Biosyl' })).toEqual([biosyl])
+            expect(getFilteredRows(plans, { nom: 'Bel-Orme' })).toEqual([
+                belOrme,
+            ])
         })
 
         it('matches anywhere in the name, not only at its start', () => {
-            expect(getFilteredRows(plans, { nom: 'Poitiers' })).toEqual([rcu])
+            expect(getFilteredRows(plans, { nom: 'Val-Fleuri' })).toEqual([
+                valFleuri,
+            ])
         })
 
         it('ignores case on the query', () => {
-            expect(getFilteredRows(plans, { nom: 'rcu' })).toEqual([rcu])
+            expect(getFilteredRows(plans, { nom: 'rcu' })).toEqual([valFleuri])
         })
 
         it('ignores case on the name', () => {
-            expect(getFilteredRows(plans, { nom: 'Phase' })).toEqual([orpinia])
+            expect(getFilteredRows(plans, { nom: 'Phase' })).toEqual([
+                plaineSud,
+            ])
         })
 
         it('ignores the spaces around the query', () => {
-            expect(getFilteredRows(plans, { nom: '  Biosyl  ' })).toEqual([
-                biosyl,
+            expect(getFilteredRows(plans, { nom: '  Bel-Orme  ' })).toEqual([
+                belOrme,
             ])
         })
 
         it('returns nothing when no name matches', () => {
-            expect(getFilteredRows(plans, { nom: 'Chaufferie' })).toEqual([])
+            expect(getFilteredRows(plans, { nom: 'Bioraffinerie' })).toEqual([])
         })
 
         it('keeps the rows in the order they were given', () => {
             // '1' is in the first and the last name, not in the middle one, so
             // a result that came back reordered would show up here.
-            expect(getFilteredRows(plans, { nom: '1' })).toEqual([rcu, orpinia])
+            expect(getFilteredRows(plans, { nom: '1' })).toEqual([
+                valFleuri,
+                plaineSud,
+            ])
         })
     })
 
     describe('on statuts', () => {
         it('keeps the rows carrying the selected statut', () => {
             expect(getFilteredRows(plans, { statuts: ['abandonné'] })).toEqual([
-                biosyl,
+                belOrme,
             ])
         })
 
         it('keeps the rows carrying any of several statuts, in order', () => {
             expect(
                 getFilteredRows(plans, { statuts: ['abandonné', 'projet'] })
-            ).toEqual([rcu, biosyl, orpinia])
+            ).toEqual([valFleuri, belOrme, plaineSud])
         })
 
         it('returns nothing when no row carries the selected statut', () => {
@@ -108,23 +123,23 @@ describe('getFilteredRows', () => {
     describe('on appelsAProjet', () => {
         it('keeps the rows attached to the selected call', () => {
             expect(
-                getFilteredRows(plans, { appelsAProjet: ['GRANULE (2023)'] })
-            ).toEqual([biosyl])
+                getFilteredRows(plans, {
+                    appelsAProjet: ['GRANULÉS NA (2023)'],
+                })
+            ).toEqual([belOrme])
         })
 
         it('keeps the rows attached to any of several calls, in order', () => {
             expect(
                 getFilteredRows(plans, {
-                    appelsAProjet: ['GRANULE (2023)', 'CRA NA (2024)'],
+                    appelsAProjet: ['GRANULÉS NA (2023)', 'CHALEUR+ (2024)'],
                 })
-            ).toEqual([rcu, biosyl])
+            ).toEqual([valFleuri, belOrme])
         })
 
         it('selects the rows attached to no call at all', () => {
-            // « Aucun » is the empty string, a value like any other here — which
-            // only works because an empty *selection* is what means "no filter".
             expect(getFilteredRows(plans, { appelsAProjet: [''] })).toEqual([
-                orpinia,
+                plaineSud,
             ])
         })
     })
@@ -132,42 +147,20 @@ describe('getFilteredRows', () => {
     describe('on lieux', () => {
         it('keeps the rows situated in the selected commune', () => {
             expect(getFilteredRows(plans, { lieux: ['Guéret (23)'] })).toEqual([
-                biosyl,
+                belOrme,
             ])
         })
 
         it('keeps the rows of several communes, in order', () => {
-            // What selecting a whole département amounts to: the group's
-            // checkbox hands over every commune it holds.
             expect(
                 getFilteredRows(plans, {
                     lieux: ['Poitiers (86)', 'Guéret (23)'],
                 })
-            ).toEqual([rcu, biosyl, orpinia])
+            ).toEqual([valFleuri, belOrme, plaineSud])
         })
 
         it('returns nothing when no row is situated there', () => {
             expect(getFilteredRows(plans, { lieux: ['Lacq (64)'] })).toEqual([])
-        })
-    })
-
-    describe('on avis', () => {
-        it('keeps the rows carrying the selected avis', () => {
-            expect(getFilteredRows(plans, { avis: ['en attente'] })).toEqual([
-                orpinia,
-            ])
-        })
-
-        it('keeps the rows carrying any of several avis, in order', () => {
-            expect(
-                getFilteredRows(plans, { avis: ['en attente', 'favorable'] })
-            ).toEqual([rcu, orpinia])
-        })
-
-        it('returns nothing when no row carries the selected avis', () => {
-            expect(
-                getFilteredRows(plans, { avis: ['favorable avec réserve'] })
-            ).toEqual([])
         })
     })
 
@@ -192,7 +185,6 @@ describe('getFilteredRows', () => {
                     statuts: [],
                     lieux: [],
                     appelsAProjet: [],
-                    avis: [],
                 })
             ).toEqual(plans)
         })
@@ -203,13 +195,13 @@ describe('getFilteredRows', () => {
             // 'i' is in all three names; the statut is what narrows it down.
             expect(
                 getFilteredRows(plans, { nom: 'i', statuts: ['projet'] })
-            ).toEqual([rcu, orpinia])
+            ).toEqual([valFleuri, plaineSud])
         })
 
         it('returns nothing when no row matches both', () => {
             expect(
                 getFilteredRows(plans, {
-                    nom: 'Biosyl',
+                    nom: 'Bel-Orme',
                     statuts: ['projet'],
                 })
             ).toEqual([])
@@ -217,14 +209,14 @@ describe('getFilteredRows', () => {
     })
 
     it('hands back the very rows it was given', () => {
-        expect(getFilteredRows(plans, { nom: 'rcu' })[0]).toBe(rcu)
+        expect(getFilteredRows(plans, { nom: 'rcu' })[0]).toBe(valFleuri)
     })
 
     it('leaves the rows it was given untouched', () => {
-        const rows = [rcu, biosyl, orpinia]
+        const rows = [valFleuri, belOrme, plaineSud]
 
         getFilteredRows(rows, { nom: 'rcu', statuts: ['projet'] })
 
-        expect(rows).toEqual([rcu, biosyl, orpinia])
+        expect(rows).toEqual([valFleuri, belOrme, plaineSud])
     })
 })

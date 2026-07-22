@@ -7,12 +7,13 @@ export default function App() {
 
     return (
         <main className="app">
-            <Accueil />
             {gristState.status === 'connecting' && (
                 <Alert severity="info" title="Connexion en cours">
                     Information : connexion à Grist en cours…
                 </Alert>
             )}
+
+            {gristState.status === 'no grist' && <p>Pas de grist ici !</p>}
 
             {gristState.status === 'denied' && (
                 <Alert severity="warning" title="Accès insuffisant">
@@ -38,10 +39,13 @@ export default function App() {
                 </>
             )}
 
-            {/* The page is static for now: it draws its own fake data and
-                ignores what the document sent. `gristState.data` is what it
-                will be given once the layout is wired up. */}
-            {gristState.status === 'ready' && <Accueil />}
+            {gristState.status === 'ready' && (
+                <Accueil
+                    plansApprovisionnement={
+                        gristState.data.Plan_d_approvisionnement
+                    }
+                />
+            )}
         </main>
     )
 }
