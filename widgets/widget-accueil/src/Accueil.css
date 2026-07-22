@@ -39,7 +39,8 @@
 }
 
 .accueil__filter {
-    flex: 0 1 12rem;
+    flex: 0 1 17rem;
+    min-width: 0;
 }
 
 .accueil__filter .fr-select-group {

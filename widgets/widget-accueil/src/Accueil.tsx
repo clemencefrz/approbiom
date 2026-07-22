@@ -178,6 +178,7 @@ export default function Accueil() {
                         options={STATUT_OPTIONS}
                         selectedValues={statuts}
                         onSelectionChange={setStatuts}
+                        showSelectAll
                     />
                 </div>
                 <div className="accueil__filter">
@@ -186,6 +187,7 @@ export default function Accueil() {
                         options={LIEU_OPTIONS}
                         selectedValues={lieux}
                         onSelectionChange={setLieux}
+                        showSelectAll
                         legend="Communes, par département"
                         hideLegend
                     />
@@ -196,6 +198,7 @@ export default function Accueil() {
                         options={APPEL_A_PROJET_OPTIONS}
                         selectedValues={appelsAProjet}
                         onSelectionChange={setAppelsAProjet}
+                        showSelectAll
                     />
                 </div>
                 <div className="accueil__filter">
@@ -204,6 +207,7 @@ export default function Accueil() {
                         options={AVIS_CRB_OPTIONS}
                         selectedValues={avis}
                         onSelectionChange={setAvis}
+                        showSelectAll
                     />
                 </div>
                 <button
