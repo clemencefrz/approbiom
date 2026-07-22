@@ -20,7 +20,10 @@ describe('App Widget Accueil', () => {
         render(<App />)
 
         expect(
-            screen.getByRole('heading', { level: 1, name: 'Accueil' })
+            screen.getByRole('heading', {
+                level: 1,
+                name: 'Suivi des plans d’approvisionnement',
+            })
         ).toBeDefined()
     })
 
