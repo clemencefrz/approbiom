@@ -5,25 +5,46 @@ type TableRowMap = {
     Plan_d_approvisionnement: Plan_d_approvisionnement
 }
 
-type TableId = keyof TableRowMap
+export type TableId = keyof TableRowMap
 
-type ColumnId<K extends TableId> = keyof TableRowMap[K] & string
+export type ColumnId<K extends TableId> = keyof TableRowMap[K] & string
+
+export type TableSpec = {
+    [K in TableId]?: readonly ColumnId<K>[]
+}
+
+export type FetchedData<S extends TableSpec> = {
+    // K in keyof S & TableId: keeps only key of S of type TableId
+    // NonNullable<S[K]> extends readonly (infer C extends ColumnId<K>)[]: S[K] value is a readonly column of K ?
+    [K in keyof S & TableId]: NonNullable<
+        S[K]
+    > extends readonly (infer C extends ColumnId<K>)[]
+        ? readonly Pick<TableRowMap[K], C>[]
+        : never
+}
 
 /**
- * Fetches one Approbiom table, keeping only the requested columns and narrowing
- * the row type to exactly those columns — so a page can ask for a subset instead
- * of the whole row.
+ * Fetches every table named in `spec` in parallel and returns them keyed by
+ * table id, each narrowed to the columns that table asked for. This is the
+ * many-tables counterpart of `getApprobiomTable`, and what `useGrist` calls.
  *
- * @example
- * const plans = await getApprobiomTable('Plan_d_approvisionnement', ['Nom', 'Statut'])
- * //    ^? Pick<Plan_d_approvisionnement, 'Nom' | 'Statut'>[]
+ * The runtime loop is untyped (the table ids come from a dynamic object, so TS
+ * cannot correlate each id with its own column list); the single `as` cast at
+ * the boundary is what restores the precise per-table types, and it is sound
+ * because `spec` is already checked against `TableSpec` at the call site.
  *
- * @throws If a requested column is absent from the fetched table (see `fetchRows`).
  */
-export async function getApprobiomTable<
-    K extends TableId,
-    C extends ColumnId<K>,
->(tableId: K, columnIds: readonly C[]): Promise<Pick<TableRowMap[K], C>[]> {
-    const rows = await fetchRows(tableId, columnIds)
-    return rows as Pick<TableRowMap[K], C>[]
+export async function getApprobiomTables<const S extends TableSpec>(
+    spec: S
+): Promise<FetchedData<S>> {
+    const entries = Object.entries(spec) as [string, readonly string[]][]
+
+    const tables = await Promise.all(
+        entries.map(async ([tableId, columnIds]) => {
+            const rows = await fetchRows(tableId, columnIds)
+            return [tableId, rows] as const
+        })
+    )
+
+    return Object.fromEntries(tables) as unknown as FetchedData<S>
 }
