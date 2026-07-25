@@ -23,6 +23,7 @@ export type Installation = {
 }
 
 export type Plan_d_approvisionnement = {
+    id: number // Implicit Grist rowId
     Installation: number | boolean // Ref -> Installation
     Mise_en_service_Projet_raw: number | boolean | null
     MES_Reel: number | boolean | null
