@@ -24,6 +24,8 @@ describe('App Widget Accueil', () => {
             status: 'ready',
             data: {
                 Plan_d_approvisionnement: [],
+                Demande_subvention: [],
+                Instruction_crb: [],
             },
             error: null,
             accessLevel: 'full',

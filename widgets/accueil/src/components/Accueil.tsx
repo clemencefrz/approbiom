@@ -16,6 +16,7 @@ import {
     getAppelAProjetOptions,
     getFilteredRows,
     getLieuOptions,
+    getResultCountLabel,
     getStatutOptions,
 } from '../utils'
 import Drawer from './Drawer'
@@ -84,9 +85,13 @@ function buildColumns(
 
 export type AccueilProps = {
     plansApprovisionnement: readonly PlanDapprovisionnementAccueil[]
+    phasesInstructionByPlanId: ReadonlyMap<number, readonly string[]>
 }
 
-export default function Accueil({ plansApprovisionnement }: AccueilProps) {
+export default function Accueil({
+    plansApprovisionnement,
+    phasesInstructionByPlanId,
+}: AccueilProps) {
     const [nom, setNom] = useState('')
     const [statuts, setStatuts] = useState<string[]>([])
     const [lieux, setLieux] = useState<string[]>([])
@@ -137,15 +142,19 @@ export default function Accueil({ plansApprovisionnement }: AccueilProps) {
                     </h1>
                 </header>
 
-                <SearchBar
-                    key={searchGeneration}
-                    label="Rechercher un dossier par nom"
-                    placeholder="Rechercher un dossier par nom"
-                    onSearch={setNom}
-                />
+                <div className="accueil__search">
+                    <SearchBar
+                        key={searchGeneration}
+                        label="Rechercher un dossier par nom"
+                        placeholder="Rechercher un dossier par nom"
+                        onSearch={setNom}
+                    />
+                    <p className="accueil__results" aria-live="polite">
+                        {getResultCountLabel(displayedRows.length)}
+                    </p>
+                </div>
 
                 <div className="accueil__filters">
-                    <p className="accueil__filters-label">Filtrer :</p>
                     <div className="accueil__filter">
                         <MultiSelect
                             label="Statut"
@@ -197,7 +206,13 @@ export default function Accueil({ plansApprovisionnement }: AccueilProps) {
             </div>
 
             {openedPlan && (
-                <Drawer plan={openedPlan} onClose={() => setOpenedPlan(null)} />
+                <Drawer
+                    plan={openedPlan}
+                    phasesInstruction={
+                        phasesInstructionByPlanId.get(openedPlan.id) ?? []
+                    }
+                    onClose={() => setOpenedPlan(null)}
+                />
             )}
         </>
     )

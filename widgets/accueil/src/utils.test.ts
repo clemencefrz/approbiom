@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { Plan_d_approvisionnement } from '@shared/grist/approbiom/tables'
-import { getFilteredRows } from './utils'
+import {
+    getFilteredRows,
+    getPhasesInstructionByPlanId,
+    getResultCountLabel,
+    isLaureat,
+} from './utils'
 
 function planWith(
     row: Partial<Plan_d_approvisionnement>
@@ -22,9 +27,11 @@ function planWith(
         MES_Reel: null,
         Derniere_mise_a_jour: null,
         Commentaire: '',
-        deprecie_Synthese: '',
-        est_Filtre_Dans_Accueil: null,
-        Ouvrir_la_fiche: null,
+        Voir_la_fiche: '',
+        est_Laureat: 'non',
+        CRB_competentes: 'Nouvelle-Aquitaine',
+        demande_subvention: null,
+        Voir_les_ressources: '',
         ...row,
     }
 }
@@ -248,5 +255,136 @@ describe('getFilteredRows', () => {
                 nullish,
             ])
         })
+    })
+})
+
+describe('getResultCountLabel', () => {
+    it('counts several rows in the plural', () => {
+        expect(getResultCountLabel(12)).toBe('12 résultats')
+    })
+
+    it('counts a single row in the singular', () => {
+        expect(getResultCountLabel(1)).toBe('1 résultat')
+    })
+
+    it('counts no row at all in the singular, as French does', () => {
+        expect(getResultCountLabel(0)).toBe('0 résultat')
+    })
+})
+
+describe('isLaureat', () => {
+    it('reads « oui » as won', () => {
+        expect(isLaureat('oui')).toBe(true)
+    })
+
+    it('ignores the case and the spaces around the answer', () => {
+        expect(isLaureat('  Oui ')).toBe(true)
+    })
+
+    it('reads « non » as not won', () => {
+        expect(isLaureat('non')).toBe(false)
+    })
+
+    it('reads an unanswered cell as not won', () => {
+        expect(isLaureat('')).toBe(false)
+    })
+
+    it('reads a wording it does not know as not won', () => {
+        expect(isLaureat('en cours')).toBe(false)
+    })
+})
+
+describe('getPhasesInstructionByPlanId', () => {
+    // A demande de subvention is what ties an instruction to a plan: the
+    // instruction names the demande, the demande names the plan.
+    const demandes = [
+        { id: 10, Plan_d_approvisionnement: 1 },
+        { id: 20, Plan_d_approvisionnement: 2 },
+    ]
+
+    it('files the phase of an instruction under the plan of its demande', () => {
+        expect(
+            getPhasesInstructionByPlanId(demandes, [
+                { subvention: 10, Phase_de_l_instruction: 'Avis CRB rendu' },
+            ])
+        ).toEqual(new Map([[1, ['Avis CRB rendu']]]))
+    })
+
+    it('gives a plan one phase per instruction, in the order received', () => {
+        expect(
+            getPhasesInstructionByPlanId(demandes, [
+                {
+                    subvention: 10,
+                    Phase_de_l_instruction: 'Avis préfet en attente',
+                },
+                { subvention: 10, Phase_de_l_instruction: 'Avis CRB rendu' },
+            ])
+        ).toEqual(new Map([[1, ['Avis préfet en attente', 'Avis CRB rendu']]]))
+    })
+
+    it('keeps two instructions sitting in the same phase apart', () => {
+        expect(
+            getPhasesInstructionByPlanId(demandes, [
+                { subvention: 10, Phase_de_l_instruction: 'Avis CRB rendu' },
+                { subvention: 10, Phase_de_l_instruction: 'Avis CRB rendu' },
+            ])
+        ).toEqual(new Map([[1, ['Avis CRB rendu', 'Avis CRB rendu']]]))
+    })
+
+    it('keeps the plans apart', () => {
+        expect(
+            getPhasesInstructionByPlanId(demandes, [
+                { subvention: 20, Phase_de_l_instruction: 'Avis CRB rendu' },
+                {
+                    subvention: 10,
+                    Phase_de_l_instruction: 'Avis préfet en attente',
+                },
+            ])
+        ).toEqual(
+            new Map([
+                [2, ['Avis CRB rendu']],
+                [1, ['Avis préfet en attente']],
+            ])
+        )
+    })
+
+    it('leaves out a plan no instruction points at', () => {
+        expect(getPhasesInstructionByPlanId(demandes, [])).toEqual(new Map())
+    })
+
+    it('drops an instruction whose demande is unknown', () => {
+        expect(
+            getPhasesInstructionByPlanId(demandes, [
+                { subvention: 99, Phase_de_l_instruction: 'Avis CRB rendu' },
+            ])
+        ).toEqual(new Map())
+    })
+
+    it('drops an instruction attached to no demande at all', () => {
+        // An unset Ref comes back from Grist as 0 or false, never as a rowId.
+        expect(
+            getPhasesInstructionByPlanId(demandes, [
+                { subvention: 0, Phase_de_l_instruction: 'Avis CRB rendu' },
+                { subvention: false, Phase_de_l_instruction: 'Avis CRB rendu' },
+            ])
+        ).toEqual(new Map())
+    })
+
+    it('drops an instruction whose phase the document could not compute', () => {
+        expect(
+            getPhasesInstructionByPlanId(demandes, [
+                { subvention: 10, Phase_de_l_instruction: null },
+                { subvention: 10, Phase_de_l_instruction: '   ' },
+            ])
+        ).toEqual(new Map())
+    })
+
+    it('ignores a demande attached to no plan', () => {
+        expect(
+            getPhasesInstructionByPlanId(
+                [{ id: 30, Plan_d_approvisionnement: 0 }],
+                [{ subvention: 30, Phase_de_l_instruction: 'Avis CRB rendu' }]
+            )
+        ).toEqual(new Map())
     })
 })

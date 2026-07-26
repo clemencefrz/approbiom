@@ -1,4 +1,8 @@
-import type { PlanDapprovisionnementAccueil } from './grist'
+import type {
+    DemandeSubventionAccueil,
+    InstructionCrbAccueil,
+    PlanDapprovisionnementAccueil,
+} from './grist'
 import type {
     MultiSelectGroup,
     MultiSelectOption,
@@ -33,6 +37,12 @@ export function getFilteredRows(
     )
 }
 
+// French keeps the singular below two — « 0 résultat », « 1 résultat », then
+// « 2 résultats ».
+export function getResultCountLabel(count: number): string {
+    return `${count} résultat${count > 1 ? 's' : ''}`
+}
+
 function distinct(values: readonly (string | null)[]): string[] {
     return [
         ...new Set(
@@ -62,6 +72,57 @@ export function getAppelAProjetOptions(
     return rows.some((row) => (row.Appel_a_projet ?? '') === '')
         ? [...options, { value: '', label: 'Aucun' }]
         : options
+}
+
+// « est Lauréat » is stored as a word, not as a Grist boolean, so the answer is
+// read rather than tested. Anything that spells out yes counts; everything else
+// — « non », an empty cell, a wording we have not seen — does not, which is what
+// keeps an unexpected value from lighting up a tag that says the plan won.
+const OUI = new Set(['oui', 'vrai', 'true', 'x', '1'])
+
+export function isLaureat(estLaureat: string): boolean {
+    return OUI.has(estLaureat.trim().toLowerCase())
+}
+
+// A Ref column holds the rowId of the row it points at, but Grist types it
+// loosely and a reference to nothing comes back as 0 or as false. Row ids start
+// at 1, so anything below that is « points at nothing » rather than a row.
+function asRowId(ref: number | boolean): number | null {
+    return typeof ref === 'number' && ref >= 1 ? ref : null
+}
+
+export function getPhasesInstructionByPlanId(
+    demandesSubvention: readonly DemandeSubventionAccueil[],
+    instructions: readonly InstructionCrbAccueil[]
+): Map<number, string[]> {
+    const planIdByDemandeId = new Map<number, number>()
+
+    for (const demande of demandesSubvention) {
+        const planId = asRowId(demande.Plan_d_approvisionnement)
+        if (planId !== null) planIdByDemandeId.set(demande.id, planId)
+    }
+
+    const phasesByPlanId = new Map<number, string[]>()
+
+    for (const instruction of instructions) {
+        const demandeId = asRowId(instruction.subvention)
+        const planId =
+            demandeId === null ? undefined : planIdByDemandeId.get(demandeId)
+
+        // An instruction attached to nothing, or whose phase the document could
+        // not compute, is dropped: a tag with no text says nothing.
+        if (planId === undefined) continue
+
+        const phase = instruction.Phase_de_l_instruction?.trim()
+        if (!phase) continue
+
+        phasesByPlanId.set(planId, [
+            ...(phasesByPlanId.get(planId) ?? []),
+            phase,
+        ])
+    }
+
+    return phasesByPlanId
 }
 
 // « Poitiers (86) » — what the communes are grouped by is the code in brackets.

@@ -5,6 +5,7 @@ import type {
 
 export const ACCUEIL_SPEC = {
     Plan_d_approvisionnement: [
+        'id',
         'Nom',
         'Departement_de_situation',
         'Appel_a_projet',
@@ -13,9 +14,21 @@ export const ACCUEIL_SPEC = {
         'Mise_en_service_projet',
         'Nature_Donnee',
         'Statut',
+        'est_Laureat',
+        'CRB_competentes',
     ],
+    Demande_subvention: ['id', 'Plan_d_approvisionnement'],
+    Instruction_crb: ['subvention', 'Phase_de_l_instruction'],
 } as const satisfies TableSpec
 
 export type PlanDapprovisionnementAccueil = FetchedData<
     typeof ACCUEIL_SPEC
 >['Plan_d_approvisionnement'][number]
+
+export type DemandeSubventionAccueil = FetchedData<
+    typeof ACCUEIL_SPEC
+>['Demande_subvention'][number]
+
+export type InstructionCrbAccueil = FetchedData<
+    typeof ACCUEIL_SPEC
+>['Instruction_crb'][number]

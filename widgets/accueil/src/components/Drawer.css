@@ -35,6 +35,13 @@
     margin-top: 1rem;
 }
 
+.drawer__tags {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
 .drawer__pending {
     color: var(--text-mention-grey);
 }
