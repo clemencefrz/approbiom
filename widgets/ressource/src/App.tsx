@@ -12,20 +12,32 @@ export default function App() {
         <main className="app">
             <GristGate state={gristState}>
                 {(data) => {
-                    // The summary's Plan_d_approvisionnement is a Ref = the plan's
-                    // rowId; index the summaries by it so each plan finds its row.
-                    const summaryByPlanId = indexByKey(
-                        data.Approvisionnement_summary_Plan_d_approvisionnement,
-                        (summary) =>
-                            typeof summary.Plan_d_approvisionnement === 'number'
-                                ? summary.Plan_d_approvisionnement
-                                : null
+                    const metaRessourceById = indexByKey(
+                        data.Meta_Ressource,
+                        (row) => row.id
+                    )
+                    const fournisseurById = indexByKey(
+                        data.Fournisseur,
+                        (row) => row.id
                     )
 
                     return (
                         <Ressource
                             plans={data.Plan_d_approvisionnement}
-                            summaryByPlanId={summaryByPlanId}
+                            ressources={
+                                data.Approvisionnement_summary_Plan_d_approvisionnement_Ressource
+                            }
+                            regions={
+                                data.Approvisionnement_summary_Plan_d_approvisionnement_Region_Ressource
+                            }
+                            fournisseurs={
+                                data.Approvisionnement_summary_Fournisseur_Plan_d_approvisionnement_Ressource
+                            }
+                            departements={
+                                data.Approvisionnement_summary_Departement_de_provenance_Plan_d_approvisionnement_Ressource
+                            }
+                            metaRessourceById={metaRessourceById}
+                            fournisseurById={fournisseurById}
                         />
                     )
                 }}

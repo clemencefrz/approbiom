@@ -1,8 +1,12 @@
 import { fetchRows } from '@shared/grist/api/client'
 import type {
     Approvisionnement_summary_Departement_de_provenance_Plan_d_approvisionnement_Ressource,
+    Approvisionnement_summary_Fournisseur_Plan_d_approvisionnement_Ressource,
     Approvisionnement_summary_Plan_d_approvisionnement,
     Approvisionnement_summary_Plan_d_approvisionnement_Ressource,
+    Approvisionnement_summary_Plan_d_approvisionnement_Region_Ressource,
+    Fournisseur,
+    Meta_Ressource,
     Plan_d_approvisionnement,
 } from './tables'
 
@@ -10,7 +14,11 @@ type TableRowMap = {
     Plan_d_approvisionnement: Plan_d_approvisionnement
     Approvisionnement_summary_Plan_d_approvisionnement: Approvisionnement_summary_Plan_d_approvisionnement
     Approvisionnement_summary_Plan_d_approvisionnement_Ressource: Approvisionnement_summary_Plan_d_approvisionnement_Ressource
+    Approvisionnement_summary_Plan_d_approvisionnement_Region_Ressource: Approvisionnement_summary_Plan_d_approvisionnement_Region_Ressource
     Approvisionnement_summary_Departement_de_provenance_Plan_d_approvisionnement_Ressource: Approvisionnement_summary_Departement_de_provenance_Plan_d_approvisionnement_Ressource
+    Approvisionnement_summary_Fournisseur_Plan_d_approvisionnement_Ressource: Approvisionnement_summary_Fournisseur_Plan_d_approvisionnement_Ressource
+    Meta_Ressource: Meta_Ressource
+    Fournisseur: Fournisseur
 }
 
 export type TableId = keyof TableRowMap
