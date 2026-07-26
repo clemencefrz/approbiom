@@ -113,6 +113,15 @@ export default function Ressource({
         (row) => row.Plan_d_approvisionnement === selectedPlanId
     )
 
+    const ressourceTotal = ressourceRows.reduce(
+        (sum, row) =>
+            sum +
+            (typeof row.Total_en_tMv_an_ === 'number'
+                ? row.Total_en_tMv_an_
+                : 0),
+        0
+    )
+
     const selectedRessourceRef =
         selectedRessource && typeof selectedRessource.Ressource === 'number'
             ? selectedRessource.Ressource
@@ -163,6 +172,12 @@ export default function Ressource({
                             `Sélectionner la ressource ${ressourceLabel(row.Ressource)}`
                         }
                     />
+                    <p>
+                        <strong>
+                            Total : {ressourceTotal.toLocaleString('fr-FR')}{' '}
+                            tonnes de matières vertes / an
+                        </strong>
+                    </p>
                 </div>
             )}
 
