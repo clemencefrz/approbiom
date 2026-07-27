@@ -23,6 +23,17 @@ type RessourceProps = {
     entrepriseById: ReadonlyMap<number, Fetched_Entreprise>
 }
 
+const REPARTITION = new Intl.NumberFormat('fr-FR', {
+    style: 'percent',
+    maximumFractionDigits: 1,
+})
+
+function repartitionLabel(repartition: number | boolean | null): string {
+    return typeof repartition === 'number'
+        ? REPARTITION.format(repartition)
+        : '—'
+}
+
 const regionColumns: readonly Column<Fetched_Region>[] = [
     {
         id: 'region',
@@ -39,6 +50,11 @@ const regionColumns: readonly Column<Fetched_Region>[] = [
         header: 'Total (en tonnes de matière verte / an)',
         render: (r) => r.Total_en_tMv_an_ ?? '—',
     },
+    {
+        id: 'repartition',
+        header: 'Répartition',
+        render: (r) => repartitionLabel(r.Repartition),
+    },
 ]
 
 const departementColumns: readonly Column<Fetched_Departement>[] = [
@@ -51,6 +67,11 @@ const departementColumns: readonly Column<Fetched_Departement>[] = [
         id: 'total',
         header: 'Total (en tonnes de matière verte / an)',
         render: (r) => r.Total_en_tMv_an_ ?? '—',
+    },
+    {
+        id: 'repartition',
+        header: 'Répartition',
+        render: (r) => repartitionLabel(r.Repartition),
     },
 ]
 
@@ -105,6 +126,11 @@ export default function Ressource({
             id: 'total',
             header: 'Total (en tonnes de matière verte / an)',
             render: (r) => r.Total_en_tMv_an_ ?? '—',
+        },
+        {
+            id: 'repartition',
+            header: 'Répartition',
+            render: (r) => repartitionLabel(r.Repartition),
         },
     ]
 

@@ -18,12 +18,14 @@ export const SPEC = {
         'Ressource',
         'Region',
         'Total_en_tMv_an_',
+        'Repartition',
     ],
     Approvisionnement_summary_Fournisseur_Plan_d_approvisionnement_Ressource: [
         'Plan_d_approvisionnement',
         'Ressource',
         'Fournisseur',
         'Total_en_tMv_an_',
+        'Repartition',
     ],
     Approvisionnement_summary_Departement_de_provenance_Plan_d_approvisionnement_Ressource:
         [
@@ -31,6 +33,7 @@ export const SPEC = {
             'Ressource',
             'Departement_de_provenance',
             'Total_en_tMv_an_',
+            'Repartition',
         ],
     // Reference tables, indexed by their rowId to resolve the summaries' Ref
     // columns to a human label. The suppliers live in `Entreprise` — the table
