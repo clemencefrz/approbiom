@@ -152,7 +152,7 @@ export default function Drawer({
                     </section>
                 ))}
                 {demandesSubvention.length === 0 && (
-                    <section className="drawer__panel fr-p-3w">
+                    <section className="drawer__panel fr-p-3w fr-mb-3w">
                         <h3 className="fr-text--md">Chronologie du dossier</h3>
                         <p className="drawer__pending">
                             Aucune demande de subvention rattachée à ce plan

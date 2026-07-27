@@ -27,13 +27,27 @@ function buildColumns(
 ): readonly Column<PlanDapprovisionnementAccueil>[] {
     return [
         {
+            id: 'action',
+            header: 'Action',
+
+            render: (plan) => (
+                <button
+                    type="button"
+                    className="fr-btn fr-btn--secondary fr-btn--sm"
+                    onClick={() => onOpen(plan)}
+                >
+                    Voir le dossier
+                </button>
+            ),
+        },
+        {
             id: 'nom',
             header: 'Nom du dossier',
             render: (plan) => plan.Nom,
         },
         {
             id: 'departement-de-situation',
-            header: 'Département de situation',
+            header: 'Lieu installation',
             render: (plan) => plan.Departement_de_situation,
         },
         {
@@ -52,12 +66,6 @@ function buildColumns(
             render: (plan) => <TagUsage usage={plan.Usage_principal ?? ''} />,
         },
         {
-            id: 'mise-en-service',
-            header: 'Mise en service projet',
-
-            render: (plan) => plan.Mise_en_service_projet || '-',
-        },
-        {
             id: 'nature-donnee',
             header: 'Nature de la donnée',
             render: (plan) => <TagNature nature={plan.Nature_Donnee} />,
@@ -66,20 +74,6 @@ function buildColumns(
             id: 'statut',
             header: 'Statut',
             render: (plan) => <TagStatut statut={plan.Statut} />,
-        },
-        {
-            id: 'action',
-            header: 'Action',
-
-            render: (plan) => (
-                <button
-                    type="button"
-                    className="fr-btn fr-btn--secondary"
-                    onClick={() => onOpen(plan)}
-                >
-                    Voir le dossier
-                </button>
-            ),
         },
     ]
 }
