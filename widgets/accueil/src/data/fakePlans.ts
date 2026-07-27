@@ -1,5 +1,9 @@
 import type { Plan_d_approvisionnement } from '@shared/grist/approbiom/tables'
-import type { DemandeSubventionAccueil, InstructionCrbAccueil } from '../grist'
+import type {
+    CrbAccueil,
+    DemandeSubventionAccueil,
+    InstructionCrbAccueil,
+} from '../grist'
 
 export const FAKE_PLANS: readonly Plan_d_approvisionnement[] = [
     {
@@ -840,34 +844,75 @@ export const FAKE_PLANS: readonly Plan_d_approvisionnement[] = [
 // would have in the document — a plan with a demande no one filed, or an
 // instruction hanging off nothing, would be fiction of the wrong kind.
 
-// A plan that answered no appel à projet asked for no aid, so it has no demande
-// — and, further down the chain, no instruction and no phase to show.
+// Every plan answers an appel à projet, so a plan whose appel is empty is one
+// nobody finished filling in — and the rest of the chain is missing with it: no
+// demande, no instruction, no phase to show. Those plans are what the panel's
+// empty states are here to cover.
 export const FAKE_DEMANDES_SUBVENTION: readonly DemandeSubventionAccueil[] =
     FAKE_PLANS.filter((plan) => plan.Appel_a_projet !== '').map((plan) => ({
         id: plan.id,
         Plan_d_approvisionnement: plan.id,
     }))
 
-const PHASES = [
-    'Avis préfet en attente',
-    'Avis CRB en attente',
-    'Instruction terminée',
-    'Saisine CRB à venir',
+export const FAKE_CRB: readonly CrbAccueil[] = [
+    { id: 1, Nom: 'CRB Nouvelle-Aquitaine' },
+    { id: 2, Nom: 'CRB Occitanie' },
 ]
+
+function jour(annee: number, mois: number, jourDuMois: number): number {
+    return Date.UTC(annee, mois - 1, jourDuMois) / 1000
+}
+
+const SAISINE_CRB = jour(2024, 3, 12)
+const AVIS_CRB = jour(2024, 5, 28)
+const AVIS_PREFET = jour(2024, 6, 14)
+
+const AVANCEMENT = {
+    'Saisine CRB à venir': {
+        Date_saisine_CRB: null,
+        Date_avis_CRB: null,
+        Date_avis_Prefet: null,
+    },
+    'Avis CRB en attente': {
+        Date_saisine_CRB: SAISINE_CRB,
+        Date_avis_CRB: null,
+        Date_avis_Prefet: null,
+    },
+    'Avis préfet en attente': {
+        Date_saisine_CRB: SAISINE_CRB,
+        Date_avis_CRB: AVIS_CRB,
+        Date_avis_Prefet: null,
+    },
+    'Instruction terminée': {
+        Date_saisine_CRB: SAISINE_CRB,
+        Date_avis_CRB: AVIS_CRB,
+        Date_avis_Prefet: AVIS_PREFET,
+    },
+}
+
+const PHASES = Object.keys(AVANCEMENT) as (keyof typeof AVANCEMENT)[]
 
 export const FAKE_INSTRUCTIONS_CRB: readonly InstructionCrbAccueil[] =
     FAKE_DEMANDES_SUBVENTION.flatMap((demande, index) => [
         {
+            // Two instructions can share a demande, so the ids are numbered
+            // apart from the demandes' own.
+            id: index * 2 + 1,
             subvention: demande.id,
+            crb: 1,
             Phase_de_l_instruction: PHASES[index % PHASES.length],
+            ...AVANCEMENT[PHASES[index % PHASES.length]],
         },
-        // One demande in three is instructed by a second CRB, which is what
-        // makes the panel show two phases for the same plan.
+        // One demande in three is instructed by a second CRB, which is the case
+        // the panel shows as two fils under one chronologie.
         ...(index % 3 === 0
             ? [
                   {
+                      id: index * 2 + 2,
                       subvention: demande.id,
+                      crb: 2,
                       Phase_de_l_instruction: 'Avis CRB en attente',
+                      ...AVANCEMENT['Avis CRB en attente'],
                   },
               ]
             : []),

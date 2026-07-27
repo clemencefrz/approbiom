@@ -2,8 +2,9 @@ import { useGrist } from '@shared/hooks/useGrist'
 import GristGate from '@shared/components/GristGate'
 import Accueil from './components/Accueil'
 import { ACCUEIL_SPEC } from './grist'
-import { getPhasesInstructionByPlanId } from './utils'
+import { getDemandesSubventionByPlanId } from './utils'
 import {
+    FAKE_CRB,
     FAKE_DEMANDES_SUBVENTION,
     FAKE_INSTRUCTIONS_CRB,
     FAKE_PLANS,
@@ -20,14 +21,16 @@ export default function App() {
                     Plan_d_approvisionnement: FAKE_PLANS,
                     Demande_subvention: FAKE_DEMANDES_SUBVENTION,
                     Instruction_crb: FAKE_INSTRUCTIONS_CRB,
+                    Crb: FAKE_CRB,
                 }}
             >
                 {(data) => (
                     <Accueil
                         plansApprovisionnement={data.Plan_d_approvisionnement}
-                        phasesInstructionByPlanId={getPhasesInstructionByPlanId(
+                        demandesSubventionByPlanId={getDemandesSubventionByPlanId(
                             data.Demande_subvention,
-                            data.Instruction_crb
+                            data.Instruction_crb,
+                            data.Crb
                         )}
                     />
                 )}

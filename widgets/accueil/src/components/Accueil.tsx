@@ -18,6 +18,7 @@ import {
     getLieuOptions,
     getResultCountLabel,
     getStatutOptions,
+    type DemandeSubvention,
 } from '../utils'
 import Drawer from './Drawer'
 
@@ -85,12 +86,15 @@ function buildColumns(
 
 export type AccueilProps = {
     plansApprovisionnement: readonly PlanDapprovisionnementAccueil[]
-    phasesInstructionByPlanId: ReadonlyMap<number, readonly string[]>
+    demandesSubventionByPlanId: ReadonlyMap<
+        number,
+        readonly DemandeSubvention[]
+    >
 }
 
 export default function Accueil({
     plansApprovisionnement,
-    phasesInstructionByPlanId,
+    demandesSubventionByPlanId,
 }: AccueilProps) {
     const [nom, setNom] = useState('')
     const [statuts, setStatuts] = useState<string[]>([])
@@ -208,8 +212,8 @@ export default function Accueil({
             {openedPlan && (
                 <Drawer
                     plan={openedPlan}
-                    phasesInstruction={
-                        phasesInstructionByPlanId.get(openedPlan.id) ?? []
+                    demandesSubvention={
+                        demandesSubventionByPlanId.get(openedPlan.id) ?? []
                     }
                     onClose={() => setOpenedPlan(null)}
                 />

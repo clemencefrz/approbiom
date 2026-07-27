@@ -2,23 +2,36 @@ import '@gouvfr/dsfr/dist/component/button/button.main.min.css'
 import '@gouvfr/dsfr/dist/utility/icons/icons-system/icons-system.main.min.css'
 import './Drawer.css'
 import Tag from '@shared/components/Tag'
+
 import type { PlanDapprovisionnementAccueil } from '../grist'
-import { isLaureat } from '../utils'
+import {
+    asDate,
+    getPhasesInstruction,
+    isLaureat,
+    type DemandeSubvention,
+} from '../utils'
 import { useEffect, useId, useRef } from 'react'
+import CardChronologie from './CardChronologie'
 
 const A_VENIR = 'À venir'
 
+const FIL_NON_DEFINI = 'Fil d’instruction non renseigné'
+
+const CRB_NON_RENSEIGNEE = 'CRB non renseignée'
+
 export type DrawerProps = {
     plan: PlanDapprovisionnementAccueil
-    phasesInstruction: readonly string[]
+    demandesSubvention: readonly DemandeSubvention[]
     onClose: () => void
 }
 
 export default function Drawer({
     plan,
-    phasesInstruction,
+    demandesSubvention,
     onClose,
 }: DrawerProps) {
+    const phasesInstruction = getPhasesInstruction(demandesSubvention)
+    const miseEnServiceReelle = asDate(plan.MES_Reel)
     const titleId = useId()
     const closeRef = useRef<HTMLButtonElement>(null)
 
@@ -78,7 +91,7 @@ export default function Drawer({
                             </Tag>
                         ))}
                         {phasesInstruction.length === 0 && (
-                            <Tag>Fil d’instruction non défini</Tag>
+                            <Tag>{FIL_NON_DEFINI}</Tag>
                         )}
                     </div>
                 </div>
@@ -87,7 +100,7 @@ export default function Drawer({
                     <div className="fr-text--sm">
                         <dt>Appel à projet&nbsp;:&nbsp;</dt>
                         <dd className="fr-text--bold">
-                            {plan.Appel_a_projet || 'Aucun'}
+                            {plan.Appel_a_projet || 'Non renseigné'}
                         </dd>
                     </div>
                     <div className="fr-text--sm">
@@ -97,6 +110,55 @@ export default function Drawer({
                         </dd>
                     </div>
                 </dl>
+
+                {demandesSubvention.map((demande) => (
+                    <section
+                        key={demande.id}
+                        className="drawer__panel fr-p-3w fr-mb-3w"
+                    >
+                        <h3 className="fr-text--md">Chronologie du dossier</h3>
+
+                        {demande.fils.length === 0 ? (
+                            <p className="drawer__pending">{FIL_NON_DEFINI}</p>
+                        ) : (
+                            demande.fils.map((fil) => (
+                                <div key={fil.id} className="drawer__fil">
+                                    <h4 className="fr-text--sm drawer__fil-titre">
+                                        {fil.crb || CRB_NON_RENSEIGNEE}
+                                    </h4>
+                                    <CardChronologie
+                                        etapes={[
+                                            {
+                                                label: 'Saisine de la CRB',
+                                                date: fil.dateSaisineCrb,
+                                            },
+                                            {
+                                                label: 'Avis CRB rendu',
+                                                date: fil.dateAvisCrb,
+                                            },
+                                            {
+                                                label: 'Avis préfet rendu',
+                                                date: fil.dateAvisPrefet,
+                                            },
+                                            {
+                                                label: 'Mise en service réel',
+                                                date: miseEnServiceReelle,
+                                            },
+                                        ]}
+                                    />
+                                </div>
+                            ))
+                        )}
+                    </section>
+                ))}
+                {demandesSubvention.length === 0 && (
+                    <section className="drawer__panel fr-p-3w">
+                        <h3 className="fr-text--md">Chronologie du dossier</h3>
+                        <p className="drawer__pending">
+                            Aucune demande de subvention rattachée à ce plan
+                        </p>
+                    </section>
+                )}
 
                 <section className="drawer__panel fr-p-3w fr-mb-3w">
                     <h3 className="fr-text--md">Pièces du dossier</h3>
@@ -122,11 +184,6 @@ export default function Drawer({
                             </button>
                         </li>
                     </ul>
-                </section>
-
-                <section className="drawer__panel fr-p-3w">
-                    <h3 className="fr-text--md">Chronologie du dossier</h3>
-                    <p className="drawer__pending">{A_VENIR}</p>
                 </section>
             </section>
         </>

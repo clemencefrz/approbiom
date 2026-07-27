@@ -16,9 +16,19 @@ export const ACCUEIL_SPEC = {
         'Statut',
         'est_Laureat',
         'CRB_competentes',
+        'MES_Reel',
     ],
     Demande_subvention: ['id', 'Plan_d_approvisionnement'],
-    Instruction_crb: ['subvention', 'Phase_de_l_instruction'],
+    Instruction_crb: [
+        'id',
+        'subvention',
+        'crb',
+        'Phase_de_l_instruction',
+        'Date_saisine_CRB',
+        'Date_avis_CRB',
+        'Date_avis_Prefet',
+    ],
+    Crb: ['id', 'Nom'],
 } as const satisfies TableSpec
 
 export type PlanDapprovisionnementAccueil = FetchedData<
@@ -32,3 +42,5 @@ export type DemandeSubventionAccueil = FetchedData<
 export type InstructionCrbAccueil = FetchedData<
     typeof ACCUEIL_SPEC
 >['Instruction_crb'][number]
+
+export type CrbAccueil = FetchedData<typeof ACCUEIL_SPEC>['Crb'][number]

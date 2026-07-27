@@ -26,6 +26,7 @@ describe('App Widget Accueil', () => {
                 Plan_d_approvisionnement: [],
                 Demande_subvention: [],
                 Instruction_crb: [],
+                Crb: [],
             },
             error: null,
             accessLevel: 'full',

@@ -434,6 +434,7 @@ export type Subvention = {
 }
 
 export type Crb = {
+    id: number // Implicit Grist rowId
     Nom: string
     Region: number | boolean // Ref -> INSEE_Region
 }
