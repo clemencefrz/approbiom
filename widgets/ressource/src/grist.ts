@@ -33,9 +33,11 @@ export const SPEC = {
             'Total_en_tMv_an_',
         ],
     // Reference tables, indexed by their rowId to resolve the summaries' Ref
-    // columns to a human label.
+    // columns to a human label. The suppliers live in `Entreprise` — the table
+    // the summaries' `Fournisseur` column points at, that column having kept its
+    // own name when the table was renamed.
     Meta_Ressource: ['id', 'Description_courte'],
-    Fournisseur: ['id', 'Denomination'],
+    Entreprise: ['id', 'Denomination'],
 } as const satisfies TableSpec
 
 export type Fetched_Plan_d_approvisionnement = FetchedData<
@@ -62,6 +64,4 @@ export type Fetched_Meta_Ressource = FetchedData<
     typeof SPEC
 >['Meta_Ressource'][number]
 
-export type Fetched_Fournisseur_info = FetchedData<
-    typeof SPEC
->['Fournisseur'][number]
+export type Fetched_Entreprise = FetchedData<typeof SPEC>['Entreprise'][number]

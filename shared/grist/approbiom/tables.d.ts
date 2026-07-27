@@ -210,7 +210,7 @@ export type Page_Tests = {
     A: string
 }
 
-export type Fournisseur = {
+export type Entreprise = {
     id: number // Implicit Grist rowId
     Siret: number | boolean | null
     Denomination: string

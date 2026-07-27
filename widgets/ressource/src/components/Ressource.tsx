@@ -8,7 +8,7 @@ import type {
     Fetched_Fournisseur,
     Fetched_Departement,
     Fetched_Meta_Ressource,
-    Fetched_Fournisseur_info,
+    Fetched_Entreprise,
 } from '../grist'
 
 type RessourceProps = {
@@ -18,7 +18,9 @@ type RessourceProps = {
     fournisseurs: readonly Fetched_Fournisseur[]
     departements: readonly Fetched_Departement[]
     metaRessourceById: ReadonlyMap<number, Fetched_Meta_Ressource>
-    fournisseurById: ReadonlyMap<number, Fetched_Fournisseur_info>
+    // What a summary's `Fournisseur` column points at: the supplier's row in
+    // `Entreprise`, keyed by rowId.
+    entrepriseById: ReadonlyMap<number, Fetched_Entreprise>
 }
 
 const regionColumns: readonly Column<Fetched_Region>[] = [
@@ -59,7 +61,7 @@ export default function Ressource({
     fournisseurs,
     departements,
     metaRessourceById,
-    fournisseurById,
+    entrepriseById,
 }: RessourceProps) {
     const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null)
     const [selectedRessource, setSelectedRessource] =
@@ -72,9 +74,11 @@ export default function Ressource({
             typeof ref === 'number' ? metaRessourceById.get(ref) : undefined
         return row?.Description_courte ?? String(ref)
     }
+    // A fournisseur is an entreprise: the column kept its name when the table it
+    // points at was renamed, so the label is read from `Entreprise`.
     const fournisseurLabel = (ref: number | boolean): string => {
         const row =
-            typeof ref === 'number' ? fournisseurById.get(ref) : undefined
+            typeof ref === 'number' ? entrepriseById.get(ref) : undefined
         return row?.Denomination ?? String(ref)
     }
 
