@@ -217,6 +217,14 @@ export function getPiecesJointesByPlanId(
     return piecesByPlanId
 }
 
+export function getAttachmentIds(
+    cell: PieceJointeAccueil['piece_jointe']
+): number[] {
+    return cell === null
+        ? []
+        : cell.filter((value): value is number => typeof value === 'number')
+}
+
 export function getPhasesInstruction(
     demandesSubvention: readonly DemandeSubvention[]
 ): readonly string[] {

@@ -6,17 +6,16 @@ import Tag from '@shared/components/Tag'
 import type {
     PieceJointeAccueil,
     PlanDapprovisionnementAccueil,
-} from '../grist'
+} from '../../grist'
 import {
     asDate,
     getPhasesInstruction,
     isLaureat,
     type DemandeSubvention,
-} from '../utils'
+} from '../../utils'
 import { useEffect, useId, useRef } from 'react'
 import CardChronologie from './CardChronologie'
-
-const TYPE_NON_RENSEIGNE = 'Type non renseigné'
+import CardPiecesJointes from './CardPiecesJointes'
 
 const FIL_NON_DEFINI = 'Fil d’instruction non renseigné'
 
@@ -116,6 +115,8 @@ export default function Drawer({
                     </div>
                 </dl>
 
+                <CardPiecesJointes piecesJointes={piecesJointes} />
+
                 {demandesSubvention.map((demande) => (
                     <section
                         key={demande.id}
@@ -164,46 +165,6 @@ export default function Drawer({
                         </p>
                     </section>
                 )}
-
-                <section className="drawer__panel fr-p-3w fr-mb-3w">
-                    <h3 className="fr-text--md">Pièces du dossier</h3>
-
-                    {piecesJointes.length === 0 ? (
-                        <p className="drawer__pending fr-mb-3w">
-                            Aucune pièce rattachée à ce plan
-                        </p>
-                    ) : (
-                        <ul className="fr-mb-3w">
-                            {piecesJointes.map((piece) => (
-                                <li key={piece.id} className="fr-text--sm">
-                                    {piece.id} —{' '}
-                                    {piece.type || TYPE_NON_RENSEIGNE}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-
-                    <ul className="fr-btns-group fr-btns-group--inline-md">
-                        <li>
-                            <button
-                                type="button"
-                                className="fr-btn fr-btn--secondary"
-                                disabled
-                            >
-                                Voir le dossier complet
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                type="button"
-                                className="fr-btn fr-btn--secondary fr-btn--icon-left fr-icon-download-line"
-                                disabled
-                            >
-                                Télécharger le dossier complet
-                            </button>
-                        </li>
-                    </ul>
-                </section>
             </section>
         </>
     )
