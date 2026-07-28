@@ -3,7 +3,10 @@ import '@gouvfr/dsfr/dist/utility/icons/icons-system/icons-system.main.min.css'
 import './Drawer.css'
 import Tag from '@shared/components/Tag'
 
-import type { PlanDapprovisionnementAccueil } from '../grist'
+import type {
+    PieceJointeAccueil,
+    PlanDapprovisionnementAccueil,
+} from '../grist'
 import {
     asDate,
     getPhasesInstruction,
@@ -13,7 +16,7 @@ import {
 import { useEffect, useId, useRef } from 'react'
 import CardChronologie from './CardChronologie'
 
-const A_VENIR = 'À venir'
+const TYPE_NON_RENSEIGNE = 'Type non renseigné'
 
 const FIL_NON_DEFINI = 'Fil d’instruction non renseigné'
 
@@ -22,12 +25,14 @@ const CRB_NON_RENSEIGNEE = 'CRB non renseignée'
 export type DrawerProps = {
     plan: PlanDapprovisionnementAccueil
     demandesSubvention: readonly DemandeSubvention[]
+    piecesJointes: readonly PieceJointeAccueil[]
     onClose: () => void
 }
 
 export default function Drawer({
     plan,
     demandesSubvention,
+    piecesJointes,
     onClose,
 }: DrawerProps) {
     const phasesInstruction = getPhasesInstruction(demandesSubvention)
@@ -162,7 +167,21 @@ export default function Drawer({
 
                 <section className="drawer__panel fr-p-3w fr-mb-3w">
                     <h3 className="fr-text--md">Pièces du dossier</h3>
-                    <p className="drawer__pending fr-mb-3w">{A_VENIR}</p>
+
+                    {piecesJointes.length === 0 ? (
+                        <p className="drawer__pending fr-mb-3w">
+                            Aucune pièce rattachée à ce plan
+                        </p>
+                    ) : (
+                        <ul className="fr-mb-3w">
+                            {piecesJointes.map((piece) => (
+                                <li key={piece.id} className="fr-text--sm">
+                                    {piece.id} —{' '}
+                                    {piece.type || TYPE_NON_RENSEIGNE}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
 
                     <ul className="fr-btns-group fr-btns-group--inline-md">
                         <li>
