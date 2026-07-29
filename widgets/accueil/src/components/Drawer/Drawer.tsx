@@ -13,9 +13,10 @@ import {
     isLaureat,
     type DemandeSubvention,
 } from '../../utils'
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import CardChronologie from './CardChronologie'
 import CardPiecesJointes from './CardPiecesJointes'
+import { RadioGroup } from '@shared/components/Radio'
 
 const FIL_NON_DEFINI = 'Fil d’instruction non renseigné'
 
@@ -39,6 +40,10 @@ export default function Drawer({
     const titleId = useId()
     const closeRef = useRef<HTMLButtonElement>(null)
 
+    const [displayedStatus, setDisplayedStatus] = useState(
+        fromStatusToValue(plan.Statut)
+    )
+
     // Focus goes into the panel, or a keyboard user would still be behind it,
     // tabbing through a table they can no longer see.
     useEffect(() => {
@@ -58,6 +63,22 @@ export default function Drawer({
             document.removeEventListener('keydown', closeOnEscape)
         }
     }, [onClose])
+
+    function fromStatusToValue(status: string) {
+        const statusLowerCase = status.toLowerCase()
+        switch (statusLowerCase) {
+            case 'en fonctionnement':
+                return 'en_fonctionnement'
+            case 'obsolète':
+                return 'obsolete'
+            case 'projet':
+                return 'projet'
+            case 'abandonné':
+                return 'abandonne'
+            default:
+                return 'undefined'
+        }
+    }
 
     return (
         <>
@@ -114,6 +135,25 @@ export default function Drawer({
                         </dd>
                     </div>
                 </dl>
+
+                <div>
+                    <RadioGroup
+                        options={[
+                            {
+                                label: 'En fonctionnement',
+                                value: 'en_fonctionnement',
+                            },
+                            { label: 'Obsolète', value: 'obsolete' },
+                            { label: 'Projet', value: 'projet' },
+                            { label: 'Abandonné', value: 'abandonne' },
+                            { label: 'Indéfini', value: 'undefined' },
+                        ]}
+                        value={displayedStatus}
+                        onChange={(value) => setDisplayedStatus(value)}
+                        legend="Statut du plan d'approvisionnement"
+                        description="Sélectionnez le statut actuel du plan d'approvisionnement."
+                    ></RadioGroup>
+                </div>
 
                 <CardPiecesJointes piecesJointes={piecesJointes} />
 
