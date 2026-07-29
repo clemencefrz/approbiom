@@ -1,7 +1,8 @@
 import Alert from '@shared/components/Alert'
 import { RadioGroup, type RadioOption } from '@shared/components/Radio'
-import type { PlanStatus } from '@shared/entitie/plan_approvisionnement'
-import { updatePlanStatus } from '@shared/service/updatePlanStatus'
+import type { PlanStatus } from '@shared/domain/plan_approvisionnement'
+import { updatePlanStatus } from '@shared/use-cases/updatePlanStatus'
+
 import { useState } from 'react'
 
 type StatusValue = PlanStatus | 'undefined'
@@ -62,7 +63,7 @@ export default function SelectStatut({
         setError(null)
 
         try {
-            await updatePlanStatus(planId, formattedValue)
+            await updatePlanStatus({ planId, status: formattedValue })
         } catch (cause) {
             console.error('Failed to update plan status:', cause)
             setError('save')

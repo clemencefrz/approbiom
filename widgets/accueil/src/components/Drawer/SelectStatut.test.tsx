@@ -7,9 +7,9 @@ import {
 } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import SelectStatut from './SelectStatut'
-import { updatePlanStatus } from '@shared/service/updatePlanStatus'
+import { updatePlanStatus } from '@shared/use-cases/updatePlanStatus'
 
-vi.mock('@shared/service/updatePlanStatus', () => ({
+vi.mock('@shared/use-cases/updatePlanStatus', () => ({
     updatePlanStatus: vi.fn(),
 }))
 
@@ -58,7 +58,10 @@ describe('SelectStatut', () => {
         fireEvent.click(getRadio('Obsolète'))
 
         await waitFor(() => {
-            expect(update).toHaveBeenCalledWith(PLAN_ID, 'obsolète')
+            expect(update).toHaveBeenCalledWith({
+                planId: PLAN_ID,
+                status: 'obsolète',
+            })
         })
         expect(onRefetchPlan).toHaveBeenCalledOnce()
         expect(screen.queryByRole('alert')).toBeNull()
@@ -86,7 +89,10 @@ describe('SelectStatut', () => {
         fireEvent.click(getRadio('Indéfini'))
 
         await waitFor(() => {
-            expect(update).toHaveBeenCalledWith(PLAN_ID, null)
+            expect(update).toHaveBeenCalledWith({
+                planId: PLAN_ID,
+                status: null,
+            })
         })
     })
 
@@ -118,7 +124,10 @@ describe('SelectStatut', () => {
         // retry a save that would only write the same value again.
         expect(alert.textContent).toContain('Affichage non actualisé')
         expect(alert.textContent).toContain('bien été enregistré')
-        expect(update).toHaveBeenCalledWith(PLAN_ID, 'obsolète')
+        expect(update).toHaveBeenCalledWith({
+            planId: PLAN_ID,
+            status: 'obsolète',
+        })
     })
 
     it('clears the error once a later attempt succeeds', async () => {
