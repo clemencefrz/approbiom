@@ -17,10 +17,14 @@ import { useEffect, useId, useRef, useState } from 'react'
 import CardChronologie from './CardChronologie'
 import CardPiecesJointes from './CardPiecesJointes'
 import { RadioGroup } from '@shared/components/Radio'
+import type { PlanStatus } from '@shared/entitie/plan_approvisionnement'
+import { updatePlanStatus } from '@shared/service/updatePlanStatus'
 
 const FIL_NON_DEFINI = 'Fil d’instruction non renseigné'
 
 const CRB_NON_RENSEIGNEE = 'CRB non renseignée'
+
+type StatusValue = PlanStatus | 'undefined'
 
 export type DrawerProps = {
     plan: PlanDapprovisionnementAccueil
@@ -39,6 +43,22 @@ export default function Drawer({
     const miseEnServiceReelle = asDate(plan.MES_Reel)
     const titleId = useId()
     const closeRef = useRef<HTMLButtonElement>(null)
+
+    function fromStatusToValue(status: string): StatusValue {
+        const statusLowerCase = status.toLowerCase()
+        switch (statusLowerCase) {
+            case 'en fonctionnement':
+                return 'en fonctionnement'
+            case 'obsolète':
+                return 'obsolète'
+            case 'projet':
+                return 'projet'
+            case 'abandonné':
+                return 'abandonné'
+            default:
+                return 'undefined'
+        }
+    }
 
     const [displayedStatus, setDisplayedStatus] = useState(
         fromStatusToValue(plan.Statut)
@@ -64,19 +84,21 @@ export default function Drawer({
         }
     }, [onClose])
 
-    function fromStatusToValue(status: string) {
-        const statusLowerCase = status.toLowerCase()
-        switch (statusLowerCase) {
-            case 'en fonctionnement':
-                return 'en_fonctionnement'
-            case 'obsolète':
-                return 'obsolete'
-            case 'projet':
-                return 'projet'
-            case 'abandonné':
-                return 'abandonne'
-            default:
-                return 'undefined'
+    async function onStatusChange(value: StatusValue) {
+        const formattedValue = value === 'undefined' ? null : value
+        //TODO: Désactivez le bouton pendant l’écriture pour éviter les doubles clics.
+
+        const oldStatus = displayedStatus
+
+        // Optmistic UI update
+        setDisplayedStatus(value)
+
+        try {
+            await updatePlanStatus(plan.id, formattedValue)
+        } catch (error) {
+            //TODO: Affichez un message d’erreur à l’utilisateur.
+            console.error('Failed to update plan status:', error)
+            setDisplayedStatus(oldStatus)
         }
     }
 
@@ -141,15 +163,17 @@ export default function Drawer({
                         options={[
                             {
                                 label: 'En fonctionnement',
-                                value: 'en_fonctionnement',
+                                value: 'en fonctionnement',
                             },
-                            { label: 'Obsolète', value: 'obsolete' },
+                            { label: 'Obsolète', value: 'obsolète' },
                             { label: 'Projet', value: 'projet' },
-                            { label: 'Abandonné', value: 'abandonne' },
+                            { label: 'Abandonné', value: 'abandonné' },
                             { label: 'Indéfini', value: 'undefined' },
                         ]}
                         value={displayedStatus}
-                        onChange={(value) => setDisplayedStatus(value)}
+                        onChange={(value) =>
+                            void onStatusChange(value as StatusValue)
+                        }
                         legend="Statut du plan d'approvisionnement"
                         description="Sélectionnez le statut actuel du plan d'approvisionnement."
                     ></RadioGroup>
