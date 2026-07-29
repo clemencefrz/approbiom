@@ -16,15 +16,11 @@ import {
 import { useEffect, useId, useRef } from 'react'
 import CardChronologie from './CardChronologie'
 import CardPiecesJointes from './CardPiecesJointes'
-import { RadioGroup } from '@shared/components/Radio'
-import type { PlanStatus } from '@shared/entitie/plan_approvisionnement'
-import { updatePlanStatus } from '@shared/service/updatePlanStatus'
+import SelectStatut from './SelectStatut'
 
 const FIL_NON_DEFINI = 'Fil d’instruction non renseigné'
 
 const CRB_NON_RENSEIGNEE = 'CRB non renseignée'
-
-type StatusValue = PlanStatus | 'undefined'
 
 export type DrawerProps = {
     plan: PlanDapprovisionnementAccueil
@@ -46,23 +42,6 @@ export default function Drawer({
     const titleId = useId()
     const closeRef = useRef<HTMLButtonElement>(null)
 
-    function fromStatusToValue(status: string | null): StatusValue {
-        switch (status?.toLowerCase()) {
-            case 'en fonctionnement':
-                return 'en fonctionnement'
-            case 'obsolète':
-                return 'obsolète'
-            case 'projet':
-                return 'projet'
-            case 'abandonné':
-                return 'abandonné'
-            default:
-                return 'undefined'
-        }
-    }
-
-    const storedStatus = fromStatusToValue(plan.Statut)
-
     // Focus goes into the panel, or a keyboard user would still be behind it,
     // tabbing through a table they can no longer see.
     useEffect(() => {
@@ -82,19 +61,6 @@ export default function Drawer({
             document.removeEventListener('keydown', closeOnEscape)
         }
     }, [onClose])
-
-    async function onStatusChange(value: StatusValue) {
-        const formattedValue = value === 'undefined' ? null : value
-        //TODO: Désactivez le bouton pendant l’écriture pour éviter les doubles clics.
-
-        try {
-            await updatePlanStatus(plan.id, formattedValue)
-            await onRefetchPlan()
-        } catch (error) {
-            //TODO: Affichez un message d’erreur à l’utilisateur.
-            console.error('Failed to update plan status:', error)
-        }
-    }
 
     return (
         <>
@@ -152,26 +118,13 @@ export default function Drawer({
                     </div>
                 </dl>
 
-                <div>
-                    <RadioGroup
-                        options={[
-                            {
-                                label: 'En fonctionnement',
-                                value: 'en fonctionnement',
-                            },
-                            { label: 'Obsolète', value: 'obsolète' },
-                            { label: 'Projet', value: 'projet' },
-                            { label: 'Abandonné', value: 'abandonné' },
-                            { label: 'Indéfini', value: 'undefined' },
-                        ]}
-                        value={storedStatus}
-                        onChange={(value) =>
-                            void onStatusChange(value as StatusValue)
-                        }
-                        legend="Statut du plan d'approvisionnement"
-                        description="Sélectionnez le statut actuel du plan d'approvisionnement."
-                    ></RadioGroup>
-                </div>
+                <section className="drawer__panel fr-p-3w fr-mb-3w">
+                    <SelectStatut
+                        planId={plan.id}
+                        statut={plan.Statut}
+                        onRefetchPlan={onRefetchPlan}
+                    />
+                </section>
 
                 <CardPiecesJointes piecesJointes={piecesJointes} />
 
