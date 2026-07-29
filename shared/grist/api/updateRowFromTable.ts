@@ -11,7 +11,7 @@ export async function updateRowFromTable(
     rowId: number,
     updatedFields: Record<string, CellValue>
 ): Promise<void> {
-    //Comparez ancienne et nouvelle valeur pour éviter les boucles de mises à jour.
+    //TODO: Comparez ancienne et nouvelle valeur pour éviter les boucles de mises à jour.
     try {
         await grist
             .getTable(tableId)

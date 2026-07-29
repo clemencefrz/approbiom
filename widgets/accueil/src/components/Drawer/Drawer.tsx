@@ -13,7 +13,7 @@ import {
     isLaureat,
     type DemandeSubvention,
 } from '../../utils'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import CardChronologie from './CardChronologie'
 import CardPiecesJointes from './CardPiecesJointes'
 import { RadioGroup } from '@shared/components/Radio'
@@ -30,6 +30,7 @@ export type DrawerProps = {
     plan: PlanDapprovisionnementAccueil
     demandesSubvention: readonly DemandeSubvention[]
     piecesJointes: readonly PieceJointeAccueil[]
+    onRefetchPlan: () => Promise<void>
     onClose: () => void
 }
 
@@ -37,6 +38,7 @@ export default function Drawer({
     plan,
     demandesSubvention,
     piecesJointes,
+    onRefetchPlan,
     onClose,
 }: DrawerProps) {
     const phasesInstruction = getPhasesInstruction(demandesSubvention)
@@ -44,9 +46,8 @@ export default function Drawer({
     const titleId = useId()
     const closeRef = useRef<HTMLButtonElement>(null)
 
-    function fromStatusToValue(status: string): StatusValue {
-        const statusLowerCase = status.toLowerCase()
-        switch (statusLowerCase) {
+    function fromStatusToValue(status: string | null): StatusValue {
+        switch (status?.toLowerCase()) {
             case 'en fonctionnement':
                 return 'en fonctionnement'
             case 'obsolète':
@@ -60,9 +61,7 @@ export default function Drawer({
         }
     }
 
-    const [displayedStatus, setDisplayedStatus] = useState(
-        fromStatusToValue(plan.Statut)
-    )
+    const storedStatus = fromStatusToValue(plan.Statut)
 
     // Focus goes into the panel, or a keyboard user would still be behind it,
     // tabbing through a table they can no longer see.
@@ -88,17 +87,12 @@ export default function Drawer({
         const formattedValue = value === 'undefined' ? null : value
         //TODO: Désactivez le bouton pendant l’écriture pour éviter les doubles clics.
 
-        const oldStatus = displayedStatus
-
-        // Optmistic UI update
-        setDisplayedStatus(value)
-
         try {
             await updatePlanStatus(plan.id, formattedValue)
+            await onRefetchPlan()
         } catch (error) {
             //TODO: Affichez un message d’erreur à l’utilisateur.
             console.error('Failed to update plan status:', error)
-            setDisplayedStatus(oldStatus)
         }
     }
 
@@ -170,7 +164,7 @@ export default function Drawer({
                             { label: 'Abandonné', value: 'abandonné' },
                             { label: 'Indéfini', value: 'undefined' },
                         ]}
-                        value={displayedStatus}
+                        value={storedStatus}
                         onChange={(value) =>
                             void onStatusChange(value as StatusValue)
                         }
