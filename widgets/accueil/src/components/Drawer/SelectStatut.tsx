@@ -1,8 +1,25 @@
+import Alert from '@shared/components/Alert'
 import { RadioGroup, type RadioOption } from '@shared/components/Radio'
 import type { PlanStatus } from '@shared/entitie/plan_approvisionnement'
 import { updatePlanStatus } from '@shared/service/updatePlanStatus'
+import { useState } from 'react'
 
 type StatusValue = PlanStatus | 'undefined'
+
+const ERRORS = {
+    save: {
+        title: 'Enregistrement impossible',
+        message:
+            'Erreur : le statut n’a pas pu être enregistré. Réessayez dans un instant.',
+    },
+    refresh: {
+        title: 'Affichage non actualisé',
+        message:
+            'Erreur : le statut a bien été enregistré, mais l’affichage n’a pas pu être actualisé. Rechargez la page pour le voir.',
+    },
+}
+
+type StatusError = keyof typeof ERRORS
 
 const STATUT_OPTIONS: readonly RadioOption<StatusValue>[] = [
     { label: 'En fonctionnement', value: 'en fonctionnement' },
@@ -38,25 +55,43 @@ export default function SelectStatut({
     statut,
     onRefetchPlan,
 }: SelectStatutProps) {
+    const [error, setError] = useState<StatusError | null>(null)
+
     async function onStatusChange(value: StatusValue) {
         const formattedValue = value === 'undefined' ? null : value
+        setError(null)
 
         try {
             await updatePlanStatus(planId, formattedValue)
+        } catch (cause) {
+            console.error('Failed to update plan status:', cause)
+            setError('save')
+            return
+        }
+
+        try {
             await onRefetchPlan()
-        } catch (error) {
-            //TODO: Affichez un message d’erreur à l’utilisateur.
-            console.error('Failed to update plan status:', error)
+        } catch (cause) {
+            console.error('Failed to read the plan back:', cause)
+            setError('refresh')
         }
     }
 
     return (
-        <RadioGroup
-            options={STATUT_OPTIONS}
-            value={fromStatusToValue(statut)}
-            onChange={(value) => void onStatusChange(value)}
-            legend="Statut du plan d'approvisionnement"
-            description="Sélectionnez le statut actuel du plan d'approvisionnement."
-        />
+        <>
+            <RadioGroup
+                options={STATUT_OPTIONS}
+                value={fromStatusToValue(statut)}
+                onChange={(value) => void onStatusChange(value)}
+                legend="Statut du plan d'approvisionnement"
+                description="Sélectionnez le statut actuel du plan d'approvisionnement."
+            />
+
+            {error && (
+                <Alert severity="error" title={ERRORS[error].title}>
+                    {ERRORS[error].message}
+                </Alert>
+            )}
+        </>
     )
 }
