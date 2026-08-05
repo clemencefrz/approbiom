@@ -1,0 +1,50 @@
+/* CSS lives next to its component: Concurrence.tsx imports this file directly. */
+
+.concurrence {
+    display: flex;
+    flex-direction: column;
+
+    gap: 1.5rem;
+    padding: 2rem;
+
+    height: 100vh;
+    overflow: auto;
+}
+
+.concurrence__title {
+    margin: 0;
+}
+
+.concurrence__filters {
+    display: flex;
+    flex-wrap: wrap;
+
+    align-items: flex-end;
+    gap: 1rem;
+}
+
+.concurrence__filter {
+    flex: 0 1 17rem;
+    min-width: 0;
+}
+
+.concurrence__filter .fr-select-group {
+    margin-bottom: 0;
+}
+
+.concurrence__table {
+    flex: 1;
+    min-height: 0;
+}
+
+.concurrence__table .fr-table,
+.concurrence__table .fr-table__wrapper,
+.concurrence__table .fr-table__container {
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+}
+
+.concurrence__table .fr-table__container {
+    padding-top: 0;
+}

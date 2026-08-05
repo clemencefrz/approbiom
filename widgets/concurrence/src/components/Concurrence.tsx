@@ -1,3 +1,4 @@
+import './Concurrence.css'
 import DataTable, { type Column } from '@shared/components/DataTable'
 import MultiSelect from '@shared/components/MultiSelect'
 import { getOptions } from '@shared/utils/getOptions'
@@ -48,16 +49,6 @@ export default function Concurrence({
                 render: (item) => item.plan_d_approvisionnement,
             },
             {
-                header: 'Ressource',
-                id: 'ressource',
-                render: (item) => item.ressource,
-            },
-            {
-                header: 'Appel à projet',
-                id: 'appel_a_projet',
-                render: (item) => item.appel_a_projet,
-            },
-            {
                 header: 'Département de situation',
                 id: 'departement_de_situation',
                 render: (item) => item.departement_de_situation,
@@ -73,31 +64,39 @@ export default function Concurrence({
         ]
 
     return (
-        <div>
-            <h1>Concurrence</h1>
-            <div>
-                <MultiSelect
-                    label="Ressource"
-                    options={ressourceOptions}
-                    selectedValues={ressource}
-                    onSelectionChange={setRessource}
-                    showSelectAll
-                />
-                <MultiSelect
-                    label="Appel à projet"
-                    options={appelAProjetOptions}
-                    selectedValues={appelAProjet}
-                    onSelectionChange={setAppelAProjet}
-                    showSelectAll
+        <div className="concurrence">
+            <h1 className="fr-h3 concurrence__title">
+                Concurrence et conflits d&apos;usage
+            </h1>
+            <div className="concurrence__filters">
+                <div className="concurrence__filter">
+                    <MultiSelect
+                        label="Ressource"
+                        options={ressourceOptions}
+                        selectedValues={ressource}
+                        onSelectionChange={setRessource}
+                        showSelectAll
+                    />
+                </div>
+                <div className="concurrence__filter">
+                    <MultiSelect
+                        label="Appel à projet"
+                        options={appelAProjetOptions}
+                        selectedValues={appelAProjet}
+                        onSelectionChange={setAppelAProjet}
+                        showSelectAll
+                    />
+                </div>
+            </div>
+            <div className="concurrence__table">
+                <DataTable
+                    caption={'Dossiers concernés'}
+                    rows={filteredRows}
+                    columns={columns}
+                    stickyHeader
+                    bordered
                 />
             </div>
-            <DataTable
-                caption={'Dossiers concernés'}
-                rows={filteredRows}
-                columns={columns}
-                stickyHeader
-                bordered
-            />
         </div>
     )
 }
