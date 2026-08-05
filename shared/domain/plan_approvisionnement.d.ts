@@ -4,4 +4,5 @@ export type PlanStatus =
 export type PlanApprovisionnement = {
     id: number
     statut: PlanStatus | null
+    nom: string
 }

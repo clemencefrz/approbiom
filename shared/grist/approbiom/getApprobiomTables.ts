@@ -12,6 +12,8 @@ import type {
     Plan_d_approvisionnement,
     Entreprise,
     Piece_jointe,
+    INSEE_Commune,
+    Installation,
 } from './tables'
 
 type TableRowMap = {
@@ -23,10 +25,12 @@ type TableRowMap = {
     Meta_Ressource: Meta_Ressource
     Entreprise: Entreprise
     INSEE_Departement: INSEE_Departement
+    INSEE_Commune: INSEE_Commune
     Demande_subvention: Demande_subvention
     Instruction_crb: Instruction_crb
     Crb: Crb
     Piece_jointe: Piece_jointe
+    Installation: Installation
 }
 
 export type TableId = keyof TableRowMap
