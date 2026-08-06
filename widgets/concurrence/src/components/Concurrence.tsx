@@ -1,11 +1,15 @@
 import './Concurrence.css'
 import DataTable, { type Column } from '@shared/components/DataTable'
-import MultiSelect from '@shared/components/MultiSelect'
+import MultiSelect, {
+    type MultiSelectGroup,
+} from '@shared/components/MultiSelect'
 import { getOptions } from '@shared/utils/getOptions'
 import type { PlanApprovisionnement } from '@shared/domain/plan_approvisionnement'
 import type { Ressource } from '@shared/domain/ressource'
 import { useState } from 'react'
 import type { Commune } from '@shared/domain/commune'
+import type { Departement } from '@shared/domain/departement'
+import type { Region } from '@shared/domain/region'
 
 type approvisionnementGroupedByPlanRessource = {
     plan_d_approvisionnement: PlanApprovisionnement['nom']
@@ -17,12 +21,15 @@ type approvisionnementGroupedByPlanRessource = {
 
 type Props = {
     approvisionnementGroupedByPlanRessource: approvisionnementGroupedByPlanRessource[]
+    departementsByRegion: Record<Region['libelle'], Departement['dep'][]>
 }
 export default function Concurrence({
     approvisionnementGroupedByPlanRessource,
+    departementsByRegion,
 }: Props) {
     const [ressource, setRessource] = useState<string[]>([])
     const [appelAProjet, setAppelAProjet] = useState<string[]>([])
+    const [departements, setDepartements] = useState<Departement['dep'][]>([])
 
     const ressourceOptions = getOptions(
         approvisionnementGroupedByPlanRessource,
@@ -33,6 +40,16 @@ export default function Concurrence({
         approvisionnementGroupedByPlanRessource,
         (item) => item.appel_a_projet
     )
+
+    const departementOptions: readonly MultiSelectGroup<Departement['dep']>[] =
+        Object.entries(departementsByRegion).map(([region, departements]) => ({
+            id: region,
+            label: region,
+            options: departements.map((dep) => ({
+                value: dep,
+                label: dep,
+            })),
+        }))
 
     const filteredRows = approvisionnementGroupedByPlanRessource.filter(
         (item) =>
@@ -75,6 +92,15 @@ export default function Concurrence({
                         options={ressourceOptions}
                         selectedValues={ressource}
                         onSelectionChange={setRessource}
+                        showSelectAll
+                    />
+                </div>
+                <div className="concurrence__filter">
+                    <MultiSelect
+                        label="Régions et départements"
+                        options={departementOptions}
+                        selectedValues={departements}
+                        onSelectionChange={setDepartements}
                         showSelectAll
                     />
                 </div>

@@ -1,6 +1,8 @@
 import { useGrist } from '@shared/hooks/useGrist'
 import GristGate from '@shared/components/GristGate'
 import Concurrence from './components/Concurrence'
+import type { Departement } from '@shared/domain/departement'
+import type { Region } from '@shared/domain/region'
 
 export default function App() {
     const gristState = useGrist({
@@ -14,7 +16,9 @@ export default function App() {
         Plan_d_approvisionnement: ['id', 'Nom', 'Installation'],
         Meta_Ressource: ['id', 'Description_courte'],
         Installation: ['id', 'Nom', 'Commune'],
-        INSEE_Commune: ['id', 'LIBELLE', 'DEP'],
+        INSEE_Commune: ['id', 'COM', 'LIBELLE', 'DEP'],
+        INSEE_Departement: ['DEP', 'LIBELLE', 'REG', 'id'],
+        INSEE_Region: ['REG', 'LIBELLE', 'id'],
     })
 
     return (
@@ -64,11 +68,23 @@ export default function App() {
                             }
                         )
 
+                    const departementsByRegion = data.INSEE_Region.reduce(
+                        (acc, region) => {
+                            const departements = data.INSEE_Departement.filter(
+                                (departement) => departement.REG === region.id
+                            )
+                            acc[region.LIBELLE] = departements.map((d) => d.DEP)
+                            return acc
+                        },
+                        {}
+                    )
+
                     return (
                         <Concurrence
                             approvisionnementGroupedByPlanRessource={
                                 approvisionnementGroupedByPlanRessource
                             }
+                            departementsByRegion={departementsByRegion}
                         />
                     )
                 }}

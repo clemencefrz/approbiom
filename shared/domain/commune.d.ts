@@ -1,4 +1,7 @@
+import type { Departement } from './departement'
+
 export type Commune = {
+    com: string
     libelle: string
-    dep: string
+    dep: Departement['dep']
 }
