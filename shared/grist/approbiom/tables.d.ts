@@ -4,7 +4,7 @@
  * Document ID: gimgk9U5dnfd
  */
 
-import type { GristObjCode, CellValue } from '../grist/GristData'
+import type { GristObjCode, CellValue } from 'grist/GristData'
 
 export type Attachments = [GristObjCode.List, ...number[]] | null
 

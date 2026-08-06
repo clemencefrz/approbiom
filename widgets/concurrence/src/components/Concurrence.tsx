@@ -6,7 +6,7 @@ import MultiSelect, {
 import { getOptions } from '@shared/utils/getOptions'
 import type { PlanApprovisionnement } from '@shared/domain/plan_approvisionnement'
 import type { Ressource } from '@shared/domain/ressource'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { Commune } from '@shared/domain/commune'
 import type { Departement } from '@shared/domain/departement'
 import type { Region } from '@shared/domain/region'
@@ -16,8 +16,7 @@ type approvisionnementGroupedByPlanRessource = {
     ressource: Ressource['description_courte']
     appel_a_projet: string
     departement_de_situation?: Commune['dep']
-    tonnage_total?: number
-    departement_des_provenances: Departement['dep'][]
+    sumTonnageTotal?: number
 }
 
 type Props = {
@@ -52,39 +51,43 @@ export default function Concurrence({
             })),
         }))
 
-    const filteredRows = approvisionnementGroupedByPlanRessource.filter(
-        (item) =>
-            (ressource.length === 0 || ressource.includes(item.ressource)) &&
-            (appelAProjet.length === 0 ||
-                appelAProjet.includes(item.appel_a_projet))
+    const filteredRows = useMemo(
+        () =>
+            approvisionnementGroupedByPlanRessource.filter(
+                (item) =>
+                    (ressource.length === 0 ||
+                        ressource.includes(item.ressource)) &&
+                    (appelAProjet.length === 0 ||
+                        appelAProjet.includes(item.appel_a_projet))
+            ),
+        [approvisionnementGroupedByPlanRessource, ressource, appelAProjet]
     )
 
     const columns: readonly Column<approvisionnementGroupedByPlanRessource>[] =
-        [
-            {
-                header: 'Plan d’approvisionnement',
-                id: 'plan_d_approvisionnement',
-                render: (item) => item.plan_d_approvisionnement,
-            },
-            {
-                header: 'Département de situation',
-                id: 'departement_de_situation',
-                render: (item) => item.departement_de_situation,
-            },
-            {
-                header: 'Départements des provenances',
-                id: 'departement_des_provenances',
-                render: (item) => item.departement_des_provenances.join(', '),
-            },
-            {
-                header: 'Tonnage total (en tonne de matière verte par an)',
-                id: 'tonnage_total',
-                render: (item) =>
-                    !item.tonnage_total || item.tonnage_total === 0
-                        ? 'N/A'
-                        : item.tonnage_total,
-            },
-        ]
+        useMemo(
+            () => [
+                {
+                    header: 'Plan d’approvisionnement',
+                    id: 'plan_d_approvisionnement',
+                    render: (item) => item.plan_d_approvisionnement,
+                },
+                {
+                    header: 'Département de situation',
+                    id: 'departement_de_situation',
+                    render: (item) => item.departement_de_situation,
+                },
+
+                {
+                    header: 'Tonnage total (en tonne de matière verte par an)',
+                    id: 'tonnage_total',
+                    render: (item) =>
+                        !item.sumTonnageTotal || item.sumTonnageTotal === 0
+                            ? 'N/A'
+                            : item.sumTonnageTotal,
+                },
+            ],
+            []
+        )
 
     return (
         <div className="concurrence">

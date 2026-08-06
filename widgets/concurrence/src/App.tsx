@@ -11,7 +11,7 @@ export default function App() {
             'Plan_d_approvisionnement',
             'Appel_a_projet',
             'Total_en_tMv_an_',
-            'Departements_de_provenance',
+            'group',
         ],
         Plan_d_approvisionnement: ['id', 'Nom', 'Installation'],
         Meta_Ressource: ['id', 'Description_courte'],
@@ -19,6 +19,11 @@ export default function App() {
         INSEE_Commune: ['id', 'COM', 'LIBELLE', 'DEP'],
         INSEE_Departement: ['DEP', 'LIBELLE', 'REG', 'id'],
         INSEE_Region: ['REG', 'LIBELLE', 'id'],
+        Approvisionnement: [
+            'id',
+            'Departement_de_provenance',
+            'Total_en_tMv_an_',
+        ],
     })
 
     return (
@@ -42,9 +47,10 @@ export default function App() {
                                     appelAProjet = item.Appel_a_projet
                                 }
 
-                                let tonnageTotal: number | undefined = undefined
+                                let sumTonnageTotal: number | undefined =
+                                    undefined
                                 if (typeof item.Total_en_tMv_an_ === 'number') {
-                                    tonnageTotal = item.Total_en_tMv_an_
+                                    sumTonnageTotal = item.Total_en_tMv_an_
                                 }
 
                                 const installation = data.Installation.find(
@@ -56,31 +62,6 @@ export default function App() {
                                 const departementDeSituation =
                                     commune?.DEP ?? undefined
 
-                                const departementsDeProvenance: Departement['dep'][] =
-                                    []
-
-                                if (
-                                    Array.isArray(
-                                        item.Departements_de_provenance
-                                    )
-                                ) {
-                                    item.Departements_de_provenance.forEach(
-                                        (dep) => {
-                                            if (
-                                                typeof dep === 'string' &&
-                                                dep !== 'L' && // it's a value from Grist that which defines a list of values, but we don't want to include it in the list of departements
-                                                departementsDeProvenance.includes(
-                                                    dep
-                                                ) === false
-                                            ) {
-                                                departementsDeProvenance.push(
-                                                    dep
-                                                )
-                                            }
-                                        }
-                                    )
-                                }
-
                                 return {
                                     plan_d_approvisionnement: plan?.Nom ?? '',
                                     ressource:
@@ -88,9 +69,7 @@ export default function App() {
                                     appel_a_projet: appelAProjet,
                                     departement_de_situation:
                                         departementDeSituation,
-                                    tonnage_total: tonnageTotal,
-                                    departement_des_provenances:
-                                        departementsDeProvenance,
+                                    sumTonnageTotal: sumTonnageTotal,
                                 }
                             }
                         )

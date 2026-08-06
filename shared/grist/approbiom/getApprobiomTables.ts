@@ -4,6 +4,7 @@ import type {
     Approvisionnement_summary_Fournisseur_Plan_d_approvisionnement_Ressource,
     Approvisionnement_summary_Plan_d_approvisionnement_Ressource,
     Approvisionnement_summary_Plan_d_approvisionnement_Region_Ressource,
+    Approvisionnement,
     Crb,
     Demande_subvention,
     INSEE_Departement,
@@ -33,6 +34,7 @@ type TableRowMap = {
     Crb: Crb
     Piece_jointe: Piece_jointe
     Installation: Installation
+    Approvisionnement: Approvisionnement
 }
 
 export type TableId = keyof TableRowMap
