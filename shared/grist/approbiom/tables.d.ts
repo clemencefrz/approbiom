@@ -386,6 +386,7 @@ export type Approvisionnement_summary_Plan_d_approvisionnement_Ressource = {
     Departement_de_situation: unknown // Formula
     Appel_a_projet: unknown // Formula
     Repartition: number | boolean | null // Formula
+    Departements_de_provenance: unknown // Formula
 }
 
 export type Approvisionnement_summary_Departement_de_provenance_Plan_d_approvisionnement_Ressource =

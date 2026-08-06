@@ -2,7 +2,6 @@ import { useGrist } from '@shared/hooks/useGrist'
 import GristGate from '@shared/components/GristGate'
 import Concurrence from './components/Concurrence'
 import type { Departement } from '@shared/domain/departement'
-import type { Region } from '@shared/domain/region'
 
 export default function App() {
     const gristState = useGrist({
@@ -12,6 +11,7 @@ export default function App() {
             'Plan_d_approvisionnement',
             'Appel_a_projet',
             'Total_en_tMv_an_',
+            'Departements_de_provenance',
         ],
         Plan_d_approvisionnement: ['id', 'Nom', 'Installation'],
         Meta_Ressource: ['id', 'Description_courte'],
@@ -56,6 +56,31 @@ export default function App() {
                                 const departementDeSituation =
                                     commune?.DEP ?? undefined
 
+                                const departementsDeProvenance: Departement['dep'][] =
+                                    []
+
+                                if (
+                                    Array.isArray(
+                                        item.Departements_de_provenance
+                                    )
+                                ) {
+                                    item.Departements_de_provenance.forEach(
+                                        (dep) => {
+                                            if (
+                                                typeof dep === 'string' &&
+                                                dep !== 'L' && // it's a value from Grist that which defines a list of values, but we don't want to include it in the list of departements
+                                                departementsDeProvenance.includes(
+                                                    dep
+                                                ) === false
+                                            ) {
+                                                departementsDeProvenance.push(
+                                                    dep
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+
                                 return {
                                     plan_d_approvisionnement: plan?.Nom ?? '',
                                     ressource:
@@ -64,6 +89,8 @@ export default function App() {
                                     departement_de_situation:
                                         departementDeSituation,
                                     tonnage_total: tonnageTotal,
+                                    departement_des_provenances:
+                                        departementsDeProvenance,
                                 }
                             }
                         )
@@ -76,7 +103,10 @@ export default function App() {
                             acc[region.LIBELLE] = departements.map((d) => d.DEP)
                             return acc
                         },
-                        {}
+                        {} as Record<
+                            Departement['libelle'],
+                            Departement['dep'][]
+                        >
                     )
 
                     return (

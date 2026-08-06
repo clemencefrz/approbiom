@@ -17,6 +17,7 @@ type approvisionnementGroupedByPlanRessource = {
     appel_a_projet: string
     departement_de_situation?: Commune['dep']
     tonnage_total?: number
+    departement_des_provenances: Departement['dep'][]
 }
 
 type Props = {
@@ -69,6 +70,11 @@ export default function Concurrence({
                 header: 'Département de situation',
                 id: 'departement_de_situation',
                 render: (item) => item.departement_de_situation,
+            },
+            {
+                header: 'Départements des provenances',
+                id: 'departement_des_provenances',
+                render: (item) => item.departement_des_provenances.join(', '),
             },
             {
                 header: 'Tonnage total (en tonne de matière verte par an)',
