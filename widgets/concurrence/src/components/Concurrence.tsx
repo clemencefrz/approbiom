@@ -13,7 +13,7 @@ import type { Region } from '@shared/domain/region'
 
 type approvisionnementGroupedByPlanRessource = {
     plan_d_approvisionnement: PlanDApprovisionnement['nom']
-    ressource: Ressource['description_courte']
+    ressource: Ressource['title']
     appel_a_projet: string
     departement_de_situation?: Commune['dep']
     sumTonnageTotal?: number

@@ -1,3 +1,4 @@
 export type Ressource = {
-    description_courte: string
+    id: string
+    title: string
 }
