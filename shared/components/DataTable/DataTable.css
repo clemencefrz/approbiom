@@ -65,21 +65,26 @@
     scroll-margin-top: var(--shared-data-table-header-height);
 }
 
-/* Caption title and result count share a line, the description sits under both.
-   DSFR styles `caption` and `fr-table__caption__desc` already; all that is
-   missing is the two-column top row, since the design system has no slot for a
-   count. `baseline` rather than `center` so the small count sits on the same
-   line as the much larger title. */
-.fr-table caption .shared-data-table__caption-title {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
+/* The header block sits outside `fr-table__wrapper`, so it no longer inherits
+   DSFR's `caption` typography — restated here, from the same rules, so moving it
+   out of the table changed where it lives and not how it reads. */
+.fr-table .shared-data-table__header {
+    margin-bottom: 1rem;
 }
 
-/* `flex-shrink: 0` keeps "11 résultats" on one line when a long caption
-   competes for the width. */
-.fr-table caption .shared-data-table__result-count {
+.fr-table .shared-data-table__header-title {
+    align-items: baseline;
+    display: flex;
+    font-size: 1.5rem;
+    font-weight: 700;
+    gap: 1rem;
+    justify-content: space-between;
+    line-height: 2rem;
+}
+
+/* `flex-shrink: 0` keeps "169 résultats" on one line when a long title competes
+   for the width. */
+.fr-table .shared-data-table__result-count {
     color: var(--text-mention-grey);
     flex-shrink: 0;
     font-size: 1rem;
@@ -87,11 +92,12 @@
     line-height: 1.5rem;
 }
 
-/* DSFR gives the description its size and spacing but leaves it in body colour;
-   grey is what tells the reader it is secondary to the caption. This file is
-   imported after DSFR's, so the equal-specificity override lands. */
-.fr-table caption .fr-table__caption__desc {
+.fr-table .shared-data-table__description {
     color: var(--text-mention-grey);
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5rem;
+    margin: 0.5rem 0 0;
 }
 
 /* The disclosure sits inside a cell and has to keep reading as cell text, so it

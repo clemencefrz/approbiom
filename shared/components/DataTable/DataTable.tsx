@@ -22,6 +22,9 @@ export default function DataTable<T>({
     // Ids only have to be unique in the document; `useId` keeps two tables on
     // the same page from pointing their labels at each other's checkboxes.
     const id = useId()
+    const titleId = `${id}-title`
+    const countId = `${id}-count`
+    const descriptionId = `${id}-description`
 
     // Keyed by the row object, not its index: filtering and sorting move a row's
     // position, and an index would leave whichever row landed there open.
@@ -66,33 +69,51 @@ export default function DataTable<T>({
 
     return (
         <div className={rootClassName}>
+            {/* Deliberately outside `fr-table__wrapper`. Its container is the
+                scrolling box, and a `<caption>` — which the HTML parser will
+                only accept inside `<table>` — therefore scrolls away with the
+                rows and puts the scrollbar alongside the title. Named through
+                `aria-labelledby` instead, so the heading is still the table's
+                accessible name without the text existing twice. */}
+            <div className="shared-data-table__header">
+                <div className="shared-data-table__header-title">
+                    <span id={titleId}>{caption}</span>
+                    {showResultCount && (
+                        // Announced on change, not on load: a sighted reader
+                        // watches the count move as filters are applied, and
+                        // this is the only way anyone else hears it.
+                        <span
+                            id={countId}
+                            className="shared-data-table__result-count"
+                            aria-live="polite"
+                        >
+                            {rows.length} résultat
+                            {rows.length > 1 ? 's' : ''}
+                        </span>
+                    )}
+                </div>
+                {description && (
+                    <p
+                        id={descriptionId}
+                        className="shared-data-table__description"
+                    >
+                        {description}
+                    </p>
+                )}
+            </div>
             <div className="fr-table__wrapper">
                 <div className="fr-table__container">
                     <div className="fr-table__content">
-                        <table>
-                            <caption>
-                                <span className="shared-data-table__caption-title">
-                                    <span>{caption}</span>
-                                    {showResultCount && (
-                                        // Announced on change, not on load: a
-                                        // sighted user watches the count move
-                                        // as filters are applied, and this is
-                                        // the only way anyone else hears it.
-                                        <span
-                                            className="shared-data-table__result-count"
-                                            aria-live="polite"
-                                        >
-                                            {rows.length} résultat
-                                            {rows.length > 1 ? 's' : ''}
-                                        </span>
-                                    )}
-                                </span>
-                                {description && (
-                                    <span className="fr-table__caption__desc">
-                                        {description}
-                                    </span>
-                                )}
-                            </caption>
+                        <table
+                            aria-labelledby={
+                                showResultCount
+                                    ? `${titleId} ${countId}`
+                                    : titleId
+                            }
+                            aria-describedby={
+                                description ? descriptionId : undefined
+                            }
+                        >
                             <thead>
                                 <tr>
                                     {isSelectable && (
