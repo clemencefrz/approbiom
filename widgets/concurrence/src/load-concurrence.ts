@@ -9,7 +9,7 @@ export type ConcurrencePorts = {
 }
 
 export type ConcurrenceScreen = {
-    approvisionnements: readonly ApprovisionnementByPlanAndRessource[]
+    approvisionnementsByPlanAndRessource: readonly ApprovisionnementByPlanAndRessource[]
     departementsByRegion: readonly DepartementsByRegion[]
 }
 
@@ -21,5 +21,8 @@ export async function loadConcurrence(
         ports.insee.listDepartementsByRegion(),
     ])
 
-    return { approvisionnements, departementsByRegion }
+    return {
+        approvisionnementsByPlanAndRessource: approvisionnements,
+        departementsByRegion,
+    }
 }

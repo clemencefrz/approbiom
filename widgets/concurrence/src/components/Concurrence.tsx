@@ -7,22 +7,22 @@ import { getOptions } from '@shared/utils/getOptions'
 import type { ApprovisionnementByPlanAndRessource } from '@shared/application/read-models/approvisionnement-by-plan-and-ressource'
 import type { DepartementsByRegion } from '@shared/application/read-models/departements-by-region'
 import type { Departement } from '@shared/domain/departement'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 type Props = {
-    approvisionnements: readonly ApprovisionnementByPlanAndRessource[]
+    approvisionnementsByPlanAndRessource: readonly ApprovisionnementByPlanAndRessource[]
     departementsByRegion: readonly DepartementsByRegion[]
 }
 
 export default function Concurrence({
-    approvisionnements,
+    approvisionnementsByPlanAndRessource: approvisionnementsByPlanAndRessource,
     departementsByRegion,
 }: Props) {
     const [ressource, setRessource] = useState<string[]>([])
     const [departements, setDepartements] = useState<Departement['dep'][]>([])
 
     const ressourceOptions = getOptions(
-        approvisionnements,
+        approvisionnementsByPlanAndRessource,
         (item) => item.ressource
     )
 
@@ -38,7 +38,7 @@ export default function Concurrence({
 
     const filteredRows = useMemo(
         () =>
-            approvisionnements.filter(
+            approvisionnementsByPlanAndRessource.filter(
                 (item) =>
                     (ressource.length === 0 ||
                         ressource.includes(item.ressource)) &&
@@ -51,7 +51,34 @@ export default function Concurrence({
                             )
                         ))
             ),
-        [approvisionnements, ressource, departements]
+        [approvisionnementsByPlanAndRessource, ressource, departements]
+    )
+
+    const getSelectedApprovisionnements = useCallback(
+        (item: ApprovisionnementByPlanAndRessource) => {
+            const keptApprovisionnements = item.approvisionnements.filter(
+                (approvisionnement) =>
+                    departements.length === 0 ||
+                    departements.includes(
+                        approvisionnement.departementDeProvenance
+                    )
+            )
+
+            return {
+                departements: keptApprovisionnements
+                    .map(
+                        (approvisionnement) =>
+                            approvisionnement.departementDeProvenance
+                    )
+                    .join(', '),
+                sumTonnageRetenu: keptApprovisionnements.reduce(
+                    (sum, approvisionnement) =>
+                        sum + (approvisionnement.tonnageTotal ?? 0),
+                    0
+                ),
+            }
+        },
+        [departements]
     )
 
     const columns: readonly Column<ApprovisionnementByPlanAndRessource>[] =
@@ -84,8 +111,20 @@ export default function Concurrence({
                     render: (item) =>
                         !item.sumTonnageTotal ? 'N/A' : item.sumTonnageTotal,
                 },
+                {
+                    header: 'Départements retenus',
+                    id: 'departements_retenus',
+                    render: (item) =>
+                        getSelectedApprovisionnements(item).departements,
+                },
+                {
+                    header: 'Tonnage retenu (en tonne de matière verte par an)',
+                    id: 'tonnage_retenu',
+                    render: (item) =>
+                        getSelectedApprovisionnements(item).sumTonnageRetenu,
+                },
             ],
-            []
+            [getSelectedApprovisionnements]
         )
 
     return (
