@@ -4,48 +4,33 @@ import MultiSelect, {
     type MultiSelectGroup,
 } from '@shared/components/MultiSelect'
 import { getOptions } from '@shared/utils/getOptions'
-import type { PlanDApprovisionnement } from '@shared/domain/plan-d-approvisionnement'
-import type { Ressource } from '@shared/domain/ressource'
-import { useMemo, useState } from 'react'
-import type { Commune } from '@shared/domain/commune'
+import type { ApprovisionnementByPlanAndRessource } from '@shared/application/read-models/approvisionnement-by-plan-and-ressource'
+import type { DepartementsByRegion } from '@shared/application/read-models/departements-by-region'
 import type { Departement } from '@shared/domain/departement'
-import type { Region } from '@shared/domain/region'
-
-type approvisionnementGroupedByPlanRessource = {
-    plan_d_approvisionnement: PlanDApprovisionnement['nom']
-    ressource: Ressource['title']
-    appel_a_projet: string
-    departement_de_situation?: Commune['dep']
-    sumTonnageTotal?: number
-}
+import { useMemo, useState } from 'react'
 
 type Props = {
-    approvisionnementGroupedByPlanRessource: approvisionnementGroupedByPlanRessource[]
-    departementsByRegion: Record<Region['libelle'], Departement['dep'][]>
+    approvisionnements: readonly ApprovisionnementByPlanAndRessource[]
+    departementsByRegion: readonly DepartementsByRegion[]
 }
+
 export default function Concurrence({
-    approvisionnementGroupedByPlanRessource,
+    approvisionnements,
     departementsByRegion,
 }: Props) {
     const [ressource, setRessource] = useState<string[]>([])
-    const [appelAProjet, setAppelAProjet] = useState<string[]>([])
     const [departements, setDepartements] = useState<Departement['dep'][]>([])
 
     const ressourceOptions = getOptions(
-        approvisionnementGroupedByPlanRessource,
+        approvisionnements,
         (item) => item.ressource
     )
 
-    const appelAProjetOptions = getOptions(
-        approvisionnementGroupedByPlanRessource,
-        (item) => item.appel_a_projet
-    )
-
     const departementOptions: readonly MultiSelectGroup<Departement['dep']>[] =
-        Object.entries(departementsByRegion).map(([region, departements]) => ({
-            id: region,
-            label: region,
-            options: departements.map((dep) => ({
+        departementsByRegion.map(({ region, departements }) => ({
+            id: region.reg,
+            label: region.libelle,
+            options: departements.map(({ dep }) => ({
                 value: dep,
                 label: dep,
             })),
@@ -53,37 +38,51 @@ export default function Concurrence({
 
     const filteredRows = useMemo(
         () =>
-            approvisionnementGroupedByPlanRessource.filter(
+            approvisionnements.filter(
                 (item) =>
                     (ressource.length === 0 ||
                         ressource.includes(item.ressource)) &&
-                    (appelAProjet.length === 0 ||
-                        appelAProjet.includes(item.appel_a_projet))
+                    // Matched on provenance: the options are département codes,
+                    // and provenance is the only column carrying one.
+                    (departements.length === 0 ||
+                        item.approvisionnements.some((approvisionnement) =>
+                            departements.includes(
+                                approvisionnement.departementDeProvenance
+                            )
+                        ))
             ),
-        [approvisionnementGroupedByPlanRessource, ressource, appelAProjet]
+        [approvisionnements, ressource, departements]
     )
 
-    const columns: readonly Column<approvisionnementGroupedByPlanRessource>[] =
+    const columns: readonly Column<ApprovisionnementByPlanAndRessource>[] =
         useMemo(
             () => [
                 {
                     header: 'Plan d’approvisionnement',
                     id: 'plan_d_approvisionnement',
-                    render: (item) => item.plan_d_approvisionnement,
+                    render: (item) => item.planDApprovisionnement,
                 },
                 {
                     header: 'Département de situation',
                     id: 'departement_de_situation',
-                    render: (item) => item.departement_de_situation,
+                    render: (item) => item.departementDeSituation,
                 },
-
+                {
+                    header: 'Départements de provenance',
+                    id: 'departements_de_provenance',
+                    render: (item) =>
+                        item.approvisionnements
+                            .map(
+                                (approvisionnement) =>
+                                    approvisionnement.departementDeProvenance
+                            )
+                            .join(', '),
+                },
                 {
                     header: 'Tonnage total (en tonne de matière verte par an)',
                     id: 'tonnage_total',
                     render: (item) =>
-                        !item.sumTonnageTotal || item.sumTonnageTotal === 0
-                            ? 'N/A'
-                            : item.sumTonnageTotal,
+                        !item.sumTonnageTotal ? 'N/A' : item.sumTonnageTotal,
                 },
             ],
             []
@@ -110,15 +109,6 @@ export default function Concurrence({
                         options={departementOptions}
                         selectedValues={departements}
                         onSelectionChange={setDepartements}
-                        showSelectAll
-                    />
-                </div>
-                <div className="concurrence__filter">
-                    <MultiSelect
-                        label="Appel à projet"
-                        options={appelAProjetOptions}
-                        selectedValues={appelAProjet}
-                        onSelectionChange={setAppelAProjet}
                         showSelectAll
                     />
                 </div>
