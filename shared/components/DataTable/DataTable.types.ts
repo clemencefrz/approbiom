@@ -4,7 +4,13 @@ export type Column<T> = {
     id: string
     header: ReactNode
     render: (row: T) => ReactNode
+    // Providing this is what puts a sort button in the column's header. It
+    // returns what rows are ordered by, which is not what `render` returns: a
+    // cell may hold a formatted string or an element, and neither sorts.
+    sortBy?: (row: T) => string | number
 }
+
+export type SortDirection = 'ascending' | 'descending'
 
 export type ExpandableRows<T> = {
     // Cells of this column become the toggle: they are what the reader clicks,

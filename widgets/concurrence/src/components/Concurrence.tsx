@@ -125,6 +125,7 @@ export default function Concurrence({
                     header: 'Plan d’approvisionnement',
                     id: 'plan_d_approvisionnement',
                     render: (item) => item.planDApprovisionnement,
+                    sortBy: (item) => item.planDApprovisionnement,
                 },
                 {
                     header: 'Département de situation',

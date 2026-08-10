@@ -2,8 +2,17 @@ import '@gouvfr/dsfr/dist/component/table/table.main.min.css'
 import '@gouvfr/dsfr/dist/component/checkbox/checkbox.main.min.css'
 import '@gouvfr/dsfr/dist/utility/icons/icons-arrows/icons-arrows.main.min.css'
 import './DataTable.css'
-import { Fragment, useId, useState } from 'react'
-import type { DataTableProps } from './DataTable.types'
+import '@gouvfr/dsfr/dist/component/button/button.main.min.css'
+import { Fragment, useId, useMemo, useState } from 'react'
+import type { DataTableProps, SortDirection } from './DataTable.types'
+
+/** Numbers compare as numbers; anything else as French text, so that accents
+ *  land where a reader expects and "10" comes after "9" rather than before. */
+function compare(a: string | number, b: string | number): number {
+    if (typeof a === 'number' && typeof b === 'number') return a - b
+
+    return String(a).localeCompare(String(b), 'fr', { numeric: true })
+}
 
 export default function DataTable<T>({
     caption,
@@ -38,6 +47,36 @@ export default function DataTable<T>({
         })
     }
 
+    const [sort, setSort] = useState<{
+        columnId: string
+        direction: SortDirection
+    } | null>(null)
+
+    // Ascending on the first click, then flips between the two directions. The
+    // table starts unsorted and stops being so for good: a column taken over by
+    // another one starts from ascending again.
+    function toggleSort(columnId: string) {
+        setSort((current) =>
+            current?.columnId === columnId && current.direction === 'ascending'
+                ? { columnId, direction: 'descending' }
+                : { columnId, direction: 'ascending' }
+        )
+    }
+
+    const sortedRows = useMemo(() => {
+        const sortBy = columns.find(
+            (column) => column.id === sort?.columnId
+        )?.sortBy
+        if (!sort || !sortBy) return rows
+
+        const direction = sort.direction === 'ascending' ? 1 : -1
+
+        // `toSorted`, never `sort`: `rows` belongs to the caller.
+        return rows.toSorted(
+            (a, b) => direction * compare(sortBy(a), sortBy(b))
+        )
+    }, [rows, columns, sort])
+
     const selected = new Set(selectedRows)
     const isSelectable = onSelectionChange !== undefined
     const columnCount = columns.length + (isSelectable ? 1 : 0)
@@ -54,7 +93,9 @@ export default function DataTable<T>({
         // the selection in the table's own order, whatever order it was
         // clicked in. `selectedRows` itself is never touched, and the row
         // objects are passed through by reference.
-        onSelectionChange?.(rows.filter((candidate) => next.has(candidate)))
+        onSelectionChange?.(
+            sortedRows.filter((candidate) => next.has(candidate))
+        )
     }
 
     const rootClassName = [
@@ -154,14 +195,60 @@ export default function DataTable<T>({
                                             </div>
                                         </th>
                                     )}
-                                    {columns.map((column) => (
-                                        // `scope="col"` ties every cell below
-                                        // to this header when a screen reader
-                                        // announces a row.
-                                        <th key={column.id} scope="col">
-                                            {column.header}
-                                        </th>
-                                    ))}
+                                    {columns.map((column) => {
+                                        const direction =
+                                            sort?.columnId === column.id
+                                                ? sort.direction
+                                                : undefined
+
+                                        return (
+                                            // `scope="col"` ties every cell
+                                            // below to this header when a screen
+                                            // reader announces a row.
+                                            <th
+                                                key={column.id}
+                                                scope="col"
+                                                // On the `th`, where the
+                                                // columnheader role reads it —
+                                                // the button below carries the
+                                                // matching state as a class,
+                                                // which is what DSFR styles.
+                                                aria-sort={
+                                                    column.sortBy
+                                                        ? (direction ?? 'none')
+                                                        : undefined
+                                                }
+                                            >
+                                                {column.sortBy ? (
+                                                    // Wrapper rather than the
+                                                    // `th` itself: DSFR's class
+                                                    // is `display: flex`, which
+                                                    // on a cell would drop it
+                                                    // out of the table's own
+                                                    // layout and unalign the
+                                                    // column.
+                                                    <div className="fr-cell--sort">
+                                                        <span>
+                                                            {column.header}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            className={`fr-btn fr-btn--sort`}
+                                                            onClick={() =>
+                                                                toggleSort(
+                                                                    column.id
+                                                                )
+                                                            }
+                                                        >
+                                                            Trier
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    column.header
+                                                )}
+                                            </th>
+                                        )
+                                    })}
                                 </tr>
                             </thead>
                             <tbody>
@@ -171,7 +258,7 @@ export default function DataTable<T>({
                                     selection would each break that assumption
                                     and are the point at which callers should
                                     start supplying a stable key themselves. */}
-                                {rows.map((row, rowIndex) => {
+                                {sortedRows.map((row, rowIndex) => {
                                     const isSelected =
                                         isSelectable && selected.has(row)
                                     const isExpanded = expandedRows.has(row)
