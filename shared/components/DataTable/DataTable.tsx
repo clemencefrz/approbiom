@@ -1,13 +1,15 @@
 import '@gouvfr/dsfr/dist/component/table/table.main.min.css'
 import '@gouvfr/dsfr/dist/component/checkbox/checkbox.main.min.css'
+import '@gouvfr/dsfr/dist/utility/icons/icons-arrows/icons-arrows.main.min.css'
 import './DataTable.css'
-import { useId } from 'react'
+import { Fragment, useId, useState } from 'react'
 import type { DataTableProps } from './DataTable.types'
 
 export default function DataTable<T>({
     caption,
     description,
     showResultCount = false,
+    expandable,
     rows,
     columns,
     bordered = false,
@@ -21,8 +23,21 @@ export default function DataTable<T>({
     // the same page from pointing their labels at each other's checkboxes.
     const id = useId()
 
+    // Keyed by the row object, not its index: filtering and sorting move a row's
+    // position, and an index would leave whichever row landed there open.
+    const [expandedRows, setExpandedRows] = useState<ReadonlySet<T>>(new Set())
+
+    function toggleExpanded(row: T) {
+        setExpandedRows((current) => {
+            const next = new Set(current)
+            if (!next.delete(row)) next.add(row)
+            return next
+        })
+    }
+
     const selected = new Set(selectedRows)
     const isSelectable = onSelectionChange !== undefined
+    const columnCount = columns.length + (isSelectable ? 1 : 0)
     const allSelected =
         rows.length > 0 && rows.every((row) => selected.has(row))
     const someSelected = rows.some((row) => selected.has(row))
@@ -138,59 +153,109 @@ export default function DataTable<T>({
                                 {rows.map((row, rowIndex) => {
                                     const isSelected =
                                         isSelectable && selected.has(row)
+                                    const isExpanded = expandedRows.has(row)
+                                    const detailId = `${id}-detail-${rowIndex}`
 
                                     return (
-                                        <tr
-                                            key={rowIndex}
-                                            // DSFR draws the blue outline of a
-                                            // selected row from this attribute;
-                                            // its own table script sets the
-                                            // same one.
-                                            aria-selected={
-                                                isSelectable
-                                                    ? isSelected
-                                                    : undefined
-                                            }
-                                            className={
-                                                isSelected
-                                                    ? 'shared-data-table__row--selected'
-                                                    : undefined
-                                            }
-                                        >
-                                            {isSelectable && (
-                                                <td className="fr-cell--fixed">
-                                                    <div className="fr-checkbox-group fr-checkbox-group--sm">
-                                                        <input
-                                                            type="checkbox"
-                                                            id={`${id}-${rowIndex}`}
-                                                            checked={isSelected}
-                                                            onChange={(event) =>
-                                                                toggleRow(
-                                                                    row,
-                                                                    event.target
-                                                                        .checked
-                                                                )
-                                                            }
-                                                        />
-                                                        <label
-                                                            className="fr-label"
-                                                            htmlFor={`${id}-${rowIndex}`}
-                                                        >
-                                                            {selectionLabel
-                                                                ? selectionLabel(
-                                                                      row
-                                                                  )
-                                                                : `Sélectionner la ligne ${rowIndex + 1}`}
-                                                        </label>
-                                                    </div>
-                                                </td>
+                                        <Fragment key={rowIndex}>
+                                            <tr
+                                                // DSFR draws the blue outline of a
+                                                // selected row from this attribute;
+                                                // its own table script sets the
+                                                // same one.
+                                                aria-selected={
+                                                    isSelectable
+                                                        ? isSelected
+                                                        : undefined
+                                                }
+                                                className={
+                                                    isSelected
+                                                        ? 'shared-data-table__row--selected'
+                                                        : undefined
+                                                }
+                                            >
+                                                {isSelectable && (
+                                                    <td className="fr-cell--fixed">
+                                                        <div className="fr-checkbox-group fr-checkbox-group--sm">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`${id}-${rowIndex}`}
+                                                                checked={
+                                                                    isSelected
+                                                                }
+                                                                onChange={(
+                                                                    event
+                                                                ) =>
+                                                                    toggleRow(
+                                                                        row,
+                                                                        event
+                                                                            .target
+                                                                            .checked
+                                                                    )
+                                                                }
+                                                            />
+                                                            <label
+                                                                className="fr-label"
+                                                                htmlFor={`${id}-${rowIndex}`}
+                                                            >
+                                                                {selectionLabel
+                                                                    ? selectionLabel(
+                                                                          row
+                                                                      )
+                                                                    : `Sélectionner la ligne ${rowIndex + 1}`}
+                                                            </label>
+                                                        </div>
+                                                    </td>
+                                                )}
+                                                {columns.map((column) => (
+                                                    <td key={column.id}>
+                                                        {expandable?.columnId ===
+                                                        column.id ? (
+                                                            <button
+                                                                type="button"
+                                                                className="shared-data-table__disclosure"
+                                                                aria-expanded={
+                                                                    isExpanded
+                                                                }
+                                                                aria-controls={
+                                                                    detailId
+                                                                }
+                                                                onClick={() =>
+                                                                    toggleExpanded(
+                                                                        row
+                                                                    )
+                                                                }
+                                                            >
+                                                                <span
+                                                                    className="fr-icon-arrow-right-s-line shared-data-table__disclosure-icon"
+                                                                    aria-hidden="true"
+                                                                />
+                                                                {column.render(
+                                                                    row
+                                                                )}
+                                                            </button>
+                                                        ) : (
+                                                            column.render(row)
+                                                        )}
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                            {expandable && (
+                                                // Rendered whether open or not, so
+                                                // `aria-controls` always resolves to
+                                                // something; `hidden` is what closes
+                                                // it.
+                                                <tr
+                                                    id={detailId}
+                                                    hidden={!isExpanded}
+                                                    className="shared-data-table__detail"
+                                                >
+                                                    <td colSpan={columnCount}>
+                                                        {expandable.render(row)}
+                                                    </td>
+                                                </tr>
                                             )}
-                                            {columns.map((column) => (
-                                                <td key={column.id}>
-                                                    {column.render(row)}
-                                                </td>
-                                            ))}
-                                        </tr>
+                                        </Fragment>
                                     )
                                 })}
                             </tbody>

@@ -93,3 +93,41 @@
 .fr-table caption .fr-table__caption__desc {
     color: var(--text-mention-grey);
 }
+
+/* The disclosure sits inside a cell and has to keep reading as cell text, so it
+   is a button stripped back to its own content: the semantics are what matter
+   (`aria-expanded`, keyboard operability), not the default button chrome. */
+.shared-data-table__disclosure {
+    align-items: center;
+    background: none;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    font: inherit;
+    gap: 0.25rem;
+    padding: 0;
+    text-align: left;
+}
+
+.shared-data-table__disclosure-icon {
+    color: var(--text-action-high-blue-france);
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+
+/* Points down once open, the usual way a disclosure says so without words. */
+.shared-data-table__disclosure[aria-expanded='true']
+    .shared-data-table__disclosure-icon {
+    transform: rotate(90deg);
+}
+
+/* `[hidden]` alone is only `display: none` at user-agent weight, which any rule
+   setting `display: table-row` would outrank. Stated here so it cannot lose. */
+.fr-table__content table tbody tr.shared-data-table__detail[hidden] {
+    display: none;
+}
+
+.fr-table__content table tbody tr.shared-data-table__detail > td {
+    background-color: var(--background-alt-grey);
+}

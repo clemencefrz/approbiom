@@ -101,6 +101,13 @@ export default function Concurrence({
                         )
                     ),
                 ].join(', '),
+                fournisseurs: [
+                    ...new Set(
+                        selectedApprovisionnements.map(
+                            (approvisionnement) => approvisionnement.fournisseur
+                        )
+                    ),
+                ].join(', '),
                 sumTonnageRetenu: selectedApprovisionnements.reduce(
                     (sum, approvisionnement) =>
                         sum + (approvisionnement.tonnageTotal ?? 0),
@@ -118,11 +125,6 @@ export default function Concurrence({
                     header: 'Plan d’approvisionnement',
                     id: 'plan_d_approvisionnement',
                     render: (item) => item.planDApprovisionnement,
-                },
-                {
-                    header: 'Ressource',
-                    id: 'ressource',
-                    render: (item) => item.ressource,
                 },
                 {
                     header: 'Département de situation',
@@ -202,8 +204,26 @@ export default function Concurrence({
             <div className="concurrence__table">
                 <DataTable
                     caption={'Dossiers concernés'}
-                    description="Chaque ligne réunit un plan d’approvisionnement et une ressource."
+                    description="Cliquez sur un plan d’approvisionnement pour voir sa ressource et ses fournisseurs retenus sans quitter la page."
                     showResultCount
+                    expandable={{
+                        columnId: 'plan_d_approvisionnement',
+                        render: (item) => (
+                            <dl className="concurrence__detail">
+                                <div>
+                                    <dt>Ressource</dt>
+                                    <dd>{item.ressource}</dd>
+                                </div>
+                                <div>
+                                    <dt>Fournisseurs retenus</dt>
+                                    <dd>
+                                        {getSelectedApprovisionnements(item)
+                                            .fournisseurs || 'Inconnu'}
+                                    </dd>
+                                </div>
+                            </dl>
+                        ),
+                    }}
                     rows={filteredRows}
                     columns={columns}
                     stickyHeader
