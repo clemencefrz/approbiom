@@ -111,6 +111,11 @@ export default function Concurrence({
                     render: (item) => item.planDApprovisionnement,
                 },
                 {
+                    header: 'Ressource',
+                    id: 'ressource',
+                    render: (item) => item.ressource,
+                },
+                {
                     header: 'Département de situation',
                     id: 'departement_de_situation',
                     render: (item) => item.departementDeSituation,
