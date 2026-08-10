@@ -86,12 +86,14 @@ export default function Concurrence({
                 item.approvisionnements.filter(isSelected)
 
             return {
-                departements: selectedApprovisionnements
-                    .map(
-                        (approvisionnement) =>
-                            approvisionnement.departementDeProvenance
-                    )
-                    .join(', '),
+                departements: [
+                    ...new Set(
+                        selectedApprovisionnements.map(
+                            (approvisionnement) =>
+                                approvisionnement.departementDeProvenance
+                        )
+                    ),
+                ].join(', '),
                 sumTonnageRetenu: selectedApprovisionnements.reduce(
                     (sum, approvisionnement) =>
                         sum + (approvisionnement.tonnageTotal ?? 0),
