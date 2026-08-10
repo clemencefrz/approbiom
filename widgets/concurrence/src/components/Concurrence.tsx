@@ -4,7 +4,7 @@ import MultiSelect, {
     type MultiSelectGroup,
 } from '@shared/components/MultiSelect'
 import { getOptions } from '@shared/utils/getOptions'
-import type { PlanApprovisionnement } from '@shared/domain/plan_approvisionnement'
+import type { PlanDApprovisionnement } from '@shared/domain/plan-d-approvisionnement'
 import type { Ressource } from '@shared/domain/ressource'
 import { useMemo, useState } from 'react'
 import type { Commune } from '@shared/domain/commune'
@@ -12,7 +12,7 @@ import type { Departement } from '@shared/domain/departement'
 import type { Region } from '@shared/domain/region'
 
 type approvisionnementGroupedByPlanRessource = {
-    plan_d_approvisionnement: PlanApprovisionnement['nom']
+    plan_d_approvisionnement: PlanDApprovisionnement['nom']
     ressource: Ressource['description_courte']
     appel_a_projet: string
     departement_de_situation?: Commune['dep']

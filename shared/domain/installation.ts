@@ -1,4 +1,4 @@
-import { Commune } from './commune.d.ts'
+import type { Commune } from './commune'
 
 export type Installation = {
     id: number
