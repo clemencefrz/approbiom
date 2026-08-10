@@ -42,14 +42,21 @@ export default function Concurrence({
     )
 
     const departementOptions: readonly MultiSelectGroup<Departement['dep']>[] =
-        departementsByRegion.map(({ region, departements }) => ({
-            id: region.reg,
-            label: region.libelle,
-            options: departements.map(({ dep }) => ({
-                value: dep,
-                label: dep,
-            })),
-        }))
+        departementsByRegion
+            // Compared in French so accents sort where a reader looks for them:
+            // "Île-de-France" belongs under I, not after Z. `toSorted` rather
+            // than `sort`, which would reorder the caller's own array.
+            .toSorted((a, b) =>
+                a.region.libelle.localeCompare(b.region.libelle, 'fr')
+            )
+            .map(({ region, departements }) => ({
+                id: region.reg,
+                label: region.libelle,
+                options: departements.map(({ dep }) => ({
+                    value: dep,
+                    label: dep,
+                })),
+            }))
 
     const isSelected = useCallback(
         (approvisionnement: Approvisionnement) =>
