@@ -7,7 +7,12 @@ import { getOptions } from '@shared/utils/getOptions'
 import type { ApprovisionnementByPlanAndRessource } from '@shared/application/read-models/approvisionnement-by-plan-and-ressource'
 import type { DepartementsByRegion } from '@shared/application/read-models/departements-by-region'
 import type { Departement } from '@shared/domain/departement'
+
 import { useCallback, useMemo, useState } from 'react'
+import type { Entreprise } from '@shared/domain/entreprise'
+
+type Approvisionnement =
+    ApprovisionnementByPlanAndRessource['approvisionnements'][number]
 
 type Props = {
     approvisionnementsByPlanAndRessource: readonly ApprovisionnementByPlanAndRessource[]
@@ -20,10 +25,20 @@ export default function Concurrence({
 }: Props) {
     const [ressource, setRessource] = useState<string[]>([])
     const [departements, setDepartements] = useState<Departement['dep'][]>([])
+    const [fournisseurs, setFournisseurs] = useState<
+        Entreprise['denomination'][]
+    >([])
 
     const ressourceOptions = getOptions(
         approvisionnementsByPlanAndRessource,
         (item) => item.ressource
+    )
+
+    const fournisseurOptions = getOptions(
+        approvisionnementsByPlanAndRessource.flatMap(
+            (item) => item.approvisionnements
+        ),
+        (approvisionnement) => approvisionnement.fournisseur
     )
 
     const departementOptions: readonly MultiSelectGroup<Departement['dep']>[] =
@@ -36,49 +51,55 @@ export default function Concurrence({
             })),
         }))
 
+    const isSelected = useCallback(
+        (approvisionnement: Approvisionnement) =>
+            (departements.length === 0 ||
+                departements.includes(
+                    approvisionnement.departementDeProvenance
+                )) &&
+            (fournisseurs.length === 0 ||
+                fournisseurs.includes(approvisionnement.fournisseur)),
+        [departements, fournisseurs]
+    )
+
     const filteredRows = useMemo(
         () =>
             approvisionnementsByPlanAndRessource.filter(
                 (item) =>
                     (ressource.length === 0 ||
                         ressource.includes(item.ressource)) &&
-                    // Matched on provenance: the options are département codes,
-                    // and provenance is the only column carrying one.
-                    (departements.length === 0 ||
-                        item.approvisionnements.some((approvisionnement) =>
-                            departements.includes(
-                                approvisionnement.departementDeProvenance
-                            )
-                        ))
+                    ((departements.length === 0 && fournisseurs.length === 0) ||
+                        item.approvisionnements.some(isSelected))
             ),
-        [approvisionnementsByPlanAndRessource, ressource, departements]
+        [
+            approvisionnementsByPlanAndRessource,
+            ressource,
+            departements,
+            fournisseurs,
+            isSelected,
+        ]
     )
 
     const getSelectedApprovisionnements = useCallback(
         (item: ApprovisionnementByPlanAndRessource) => {
-            const keptApprovisionnements = item.approvisionnements.filter(
-                (approvisionnement) =>
-                    departements.length === 0 ||
-                    departements.includes(
-                        approvisionnement.departementDeProvenance
-                    )
-            )
+            const selectedApprovisionnements =
+                item.approvisionnements.filter(isSelected)
 
             return {
-                departements: keptApprovisionnements
+                departements: selectedApprovisionnements
                     .map(
                         (approvisionnement) =>
                             approvisionnement.departementDeProvenance
                     )
                     .join(', '),
-                sumTonnageRetenu: keptApprovisionnements.reduce(
+                sumTonnageRetenu: selectedApprovisionnements.reduce(
                     (sum, approvisionnement) =>
                         sum + (approvisionnement.tonnageTotal ?? 0),
                     0
                 ),
             }
         },
-        [departements]
+        [isSelected]
     )
 
     const columns: readonly Column<ApprovisionnementByPlanAndRessource>[] =
@@ -148,6 +169,15 @@ export default function Concurrence({
                         options={departementOptions}
                         selectedValues={departements}
                         onSelectionChange={setDepartements}
+                        showSelectAll
+                    />
+                </div>
+                <div className="concurrence__filter">
+                    <MultiSelect
+                        label="Fournisseur"
+                        options={fournisseurOptions}
+                        selectedValues={fournisseurs}
+                        onSelectionChange={setFournisseurs}
                         showSelectAll
                     />
                 </div>

@@ -8,7 +8,7 @@ export type ApprovisionnementByPlanAndRessource = {
     ressource: Ressource['title']
     approvisionnements: Pick<
         Approvisionnement,
-        'departementDeProvenance' | 'tonnageTotal'
+        'departementDeProvenance' | 'tonnageTotal' | 'fournisseur'
     >[]
     departementDeSituation: Departement['libelle']
     sumTonnageTotal?: number

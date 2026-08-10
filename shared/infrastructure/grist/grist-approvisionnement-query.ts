@@ -6,8 +6,11 @@ import { asNumber, asString, byColumn, byRowId, lookup } from './grist-helpers'
 
 const GRIST_TABLE_ID_ROW_BY_PLAN_AND_RESSOURCE =
     'Approvisionnement_summary_Plan_d_approvisionnement_Ressource'
-const GRIST_TABLE_ID_ROWS_BY_DEPARTEMENT_DE_PROVENANCE_PLAN_RESSOURCE =
-    'Approvisionnement_summary_Departement_de_provenance_Plan_d_approvisionnement_Ressource'
+// The nested list comes from the raw table rather than a summary: no summary
+// carries both the département de provenance and the fournisseur — Grist groups
+// by one or the other — and one row here is exactly one `Approvisionnement`.
+const GRIST_TABLE_ID_APPROVISIONNEMENT = 'Approvisionnement'
+const GRIST_TABLE_ID_ENTREPRISE = 'Entreprise'
 const GRIST_TABLE_ID_META_RESSOURCE = 'Meta_Ressource'
 const GRIST_TABLE_ID_PLAN_D_APPROVISIONNEMENT = 'Plan_d_approvisionnement'
 const GRIST_TABLE_ID_INSTALLATION = 'Installation'
@@ -28,27 +31,26 @@ export function createGristApprovisionnementQuery(): ApprovisionnementQuery {
 
             const [
                 totals,
-                provenances,
+                approvisionnements,
                 plans,
                 ressources,
                 installations,
                 communes,
                 departements,
+                entreprises,
             ] = await Promise.all([
                 fetchRows(GRIST_TABLE_ID_ROW_BY_PLAN_AND_RESSOURCE, [
                     'Plan_d_approvisionnement',
                     'Ressource',
                     'Total_en_tMv_an_',
                 ]),
-                fetchRows(
-                    GRIST_TABLE_ID_ROWS_BY_DEPARTEMENT_DE_PROVENANCE_PLAN_RESSOURCE,
-                    [
-                        'Plan_d_approvisionnement',
-                        'Ressource',
-                        'Departement_de_provenance',
-                        'Total_en_tMv_an_',
-                    ]
-                ),
+                fetchRows(GRIST_TABLE_ID_APPROVISIONNEMENT, [
+                    'Plan_d_approvisionnement',
+                    'Ressource',
+                    'Departement_de_provenance',
+                    'Fournisseur',
+                    'Total_en_tMv_an_',
+                ]),
                 fetchRows(GRIST_TABLE_ID_PLAN_D_APPROVISIONNEMENT, [
                     'id',
                     'Nom',
@@ -65,6 +67,9 @@ export function createGristApprovisionnementQuery(): ApprovisionnementQuery {
                     'DEP',
                     'LIBELLE',
                 ]),
+                // Suppliers live in `Entreprise`; the `Fournisseur` column kept
+                // its own name when the table was renamed.
+                fetchRows(GRIST_TABLE_ID_ENTREPRISE, ['id', 'Denomination']),
             ])
 
             const planById = byRowId(plans)
@@ -76,25 +81,31 @@ export function createGristApprovisionnementQuery(): ApprovisionnementQuery {
             // by code for the situation, which the commune carries as text.
             const departementById = byRowId(departements)
             const departementByCode = byColumn(departements, 'DEP')
+            const entrepriseById = byRowId(entreprises)
 
             const approvisionnementsByPair = new Map<
                 string,
                 RequestedApprovisionnement[]
             >()
-            for (const provenance of provenances) {
+            for (const approvisionnement of approvisionnements) {
                 const key = pairKey(
-                    provenance.Plan_d_approvisionnement,
-                    provenance.Ressource
+                    approvisionnement.Plan_d_approvisionnement,
+                    approvisionnement.Ressource
                 )
                 const group = approvisionnementsByPair.get(key) ?? []
                 group.push({
                     departementDeProvenance: asString(
                         lookup(
                             departementById,
-                            provenance.Departement_de_provenance
+                            approvisionnement.Departement_de_provenance
                         )?.DEP
                     ),
-                    tonnageTotal: asNumber(provenance.Total_en_tMv_an_) ?? 0,
+                    fournisseur: asString(
+                        lookup(entrepriseById, approvisionnement.Fournisseur)
+                            ?.Denomination
+                    ),
+                    tonnageTotal:
+                        asNumber(approvisionnement.Total_en_tMv_an_) ?? 0,
                 })
                 approvisionnementsByPair.set(key, group)
             }
