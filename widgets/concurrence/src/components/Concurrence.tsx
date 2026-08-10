@@ -158,8 +158,11 @@ export default function Concurrence({
     return (
         <div className="concurrence">
             <h1 className="fr-h3 concurrence__title">
-                Concurrence et conflits d&apos;usage
+                Concurrence et conflits d&apos;usages potentiels entre projets
             </h1>
+            <p className="fr-h4 concurrence__filters_title">
+                Filtres d&apos;analyse de la concurrence
+            </p>
             <div className="concurrence__filters">
                 <div className="concurrence__filter">
                     <MultiSelect
@@ -192,10 +195,13 @@ export default function Concurrence({
             <div className="concurrence__table">
                 <DataTable
                     caption={'Dossiers concernés'}
+                    description="Chaque ligne réunit un plan d’approvisionnement et une ressource."
+                    showResultCount
                     rows={filteredRows}
                     columns={columns}
                     stickyHeader
                     bordered
+                    multiLine
                 />
             </div>
         </div>

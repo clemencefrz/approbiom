@@ -15,6 +15,10 @@
     margin: 0;
 }
 
+.concurrence__filters_title {
+    margin: 0;
+}
+
 .concurrence__filters {
     display: flex;
     flex-wrap: wrap;

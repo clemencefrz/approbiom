@@ -64,3 +64,32 @@
     :is(a, button, input) {
     scroll-margin-top: var(--shared-data-table-header-height);
 }
+
+/* Caption title and result count share a line, the description sits under both.
+   DSFR styles `caption` and `fr-table__caption__desc` already; all that is
+   missing is the two-column top row, since the design system has no slot for a
+   count. `baseline` rather than `center` so the small count sits on the same
+   line as the much larger title. */
+.fr-table caption .shared-data-table__caption-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+/* `flex-shrink: 0` keeps "11 résultats" on one line when a long caption
+   competes for the width. */
+.fr-table caption .shared-data-table__result-count {
+    color: var(--text-mention-grey);
+    flex-shrink: 0;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5rem;
+}
+
+/* DSFR gives the description its size and spacing but leaves it in body colour;
+   grey is what tells the reader it is secondary to the caption. This file is
+   imported after DSFR's, so the equal-specificity override lands. */
+.fr-table caption .fr-table__caption__desc {
+    color: var(--text-mention-grey);
+}

@@ -6,10 +6,13 @@ import type { DataTableProps } from './DataTable.types'
 
 export default function DataTable<T>({
     caption,
+    description,
+    showResultCount = false,
     rows,
     columns,
     bordered = false,
     stickyHeader = false,
+    multiLine = false,
     selectedRows,
     onSelectionChange,
     selectionLabel,
@@ -39,6 +42,7 @@ export default function DataTable<T>({
     const rootClassName = [
         'fr-table',
         'fr-table--sm',
+        multiLine && 'fr-table--multiline',
         bordered && 'fr-table--bordered',
         stickyHeader && 'shared-data-table--sticky-header',
     ]
@@ -51,7 +55,29 @@ export default function DataTable<T>({
                 <div className="fr-table__container">
                     <div className="fr-table__content">
                         <table>
-                            <caption>{caption}</caption>
+                            <caption>
+                                <span className="shared-data-table__caption-title">
+                                    <span>{caption}</span>
+                                    {showResultCount && (
+                                        // Announced on change, not on load: a
+                                        // sighted user watches the count move
+                                        // as filters are applied, and this is
+                                        // the only way anyone else hears it.
+                                        <span
+                                            className="shared-data-table__result-count"
+                                            aria-live="polite"
+                                        >
+                                            {rows.length} résultat
+                                            {rows.length > 1 ? 's' : ''}
+                                        </span>
+                                    )}
+                                </span>
+                                {description && (
+                                    <span className="fr-table__caption__desc">
+                                        {description}
+                                    </span>
+                                )}
+                            </caption>
                             <thead>
                                 <tr>
                                     {isSelectable && (
