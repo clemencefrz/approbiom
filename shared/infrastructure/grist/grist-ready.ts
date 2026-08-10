@@ -1,21 +1,18 @@
+import {
+    AccessDeniedError,
+    DataSourceUnavailableError,
+} from '@shared/application/errors'
+
 const REQUIRED_ACCESS = 'full'
-
-export class GristUnavailableError extends Error {}
-
-export class InsufficientAccessError extends Error {
-    constructor(readonly accessLevel: string) {
-        super(
-            `Grist granted "${accessLevel}" access, "${REQUIRED_ACCESS}" is required.`
-        )
-    }
-}
 
 let handshake: Promise<void> | undefined
 let grantedAccess = ''
 
 export async function gristReady(): Promise<void> {
     if (typeof grist === 'undefined') {
-        throw new GristUnavailableError('The Grist Plugin API is unavailable.')
+        throw new DataSourceUnavailableError(
+            'The Grist Plugin API is unavailable.'
+        )
     }
 
     handshake ??= new Promise<void>((resolve) => {
@@ -29,6 +26,8 @@ export async function gristReady(): Promise<void> {
     await handshake
 
     if (grantedAccess !== REQUIRED_ACCESS) {
-        throw new InsufficientAccessError(grantedAccess)
+        throw new AccessDeniedError(
+            `Grist granted "${grantedAccess}" access, "${REQUIRED_ACCESS}" is required.`
+        )
     }
 }
