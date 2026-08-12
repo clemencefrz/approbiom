@@ -14,17 +14,31 @@ export type Instruction = {
     phase: string // $Phase_de_l_instruction
 }
 
-export type AvisCRB =
-    | 'Avis favorable'
-    | 'Avis favorable avec réserves'
-    | 'Avis réservé'
-    | 'En attente'
-    | 'Non demandé'
-    | 'Avis défavorable'
+export const AVIS_CRB = [
+    'Avis favorable',
+    'Avis favorable avec réserves',
+    'Avis réservé',
+    'En attente',
+    'Non demandé',
+    'Avis défavorable',
+] as const
 
-export type AvisPrefet =
-    | 'Avis favorable'
-    | 'Avis favorable avec réserves'
-    | 'Avis réservé'
-    | 'En attente'
-    | 'Avis défavorable'
+export type AvisCRB = (typeof AVIS_CRB)[number]
+
+export function isAvisCRB(value: unknown): value is AvisCRB {
+    return AVIS_CRB.includes(value as AvisCRB)
+}
+
+export const AVIS_PREFET = [
+    'Avis favorable',
+    'Avis favorable avec réserves',
+    'Avis réservé',
+    'En attente',
+    'Avis défavorable',
+] as const
+
+export type AvisPrefet = (typeof AVIS_PREFET)[number]
+
+export function isAvisPrefet(value: unknown): value is AvisPrefet {
+    return AVIS_PREFET.includes(value as AvisPrefet)
+}
