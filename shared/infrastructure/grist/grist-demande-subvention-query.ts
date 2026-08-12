@@ -1,6 +1,6 @@
 import type { DemandeSubventionQuery } from '@shared/application/ports/demande-subvention-query'
 import { gristReady } from './grist-ready'
-import { asNumber, asString, fetchRowsOnce } from './grist-helpers'
+import { asNumber, fetchRowsOnce } from './grist-helpers'
 import { COLUMNS, TABLE } from './grist-tables'
 
 export function createGristDemandeSubventionQuery(): DemandeSubventionQuery {
@@ -14,7 +14,7 @@ export function createGristDemandeSubventionQuery(): DemandeSubventionQuery {
             )
 
             return rows.map((row) => ({
-                id: asString(row.Nom),
+                id: asNumber(row.id) ?? 0,
                 programmeAide: asNumber(row.Programme_d_aide) ?? 0,
                 planDApprovisionnement:
                     asNumber(row.Plan_d_approvisionnement) ?? 0,

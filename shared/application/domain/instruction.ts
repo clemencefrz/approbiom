@@ -1,17 +1,17 @@
 import type { Crb } from './crb'
 import type { DemandeSubvention } from './demande-subvention'
-//table Instruction_crb
+
 export type Instruction = {
-    crb: Crb['name'] //crb
+    crb: Crb['name']
     subvention: DemandeSubvention['id']
-    name: string // nom
-    avisCrbRequis: boolean //$Avis_CRB_Requis
-    dateSaisineCrb: Date | null // $Date_saisine_CRB
-    dateAvisCrb: Date | null // $Date_avis_CRB
-    avisCRB: AvisCRB //$Avis_CRB
-    dateAvisPrefet: Date | null //$Date_avis_Prefet
-    avisPrefet: AvisPrefet //$Avis_Prefet
-    phase: string // $Phase_de_l_instruction
+    name: string
+    avisCrbRequis: boolean
+    dateSaisineCrb: Date | null
+    dateAvisCrb: Date | null
+    avisCRB: AvisCRB
+    dateAvisPrefet: Date | null
+    avisPrefet: AvisPrefet
+    phase: PhaseInstruction
 }
 
 export const AVIS_CRB = [
@@ -41,4 +41,17 @@ export type AvisPrefet = (typeof AVIS_PREFET)[number]
 
 export function isAvisPrefet(value: unknown): value is AvisPrefet {
     return AVIS_PREFET.includes(value as AvisPrefet)
+}
+
+export const PHASES_INSTRUCTION = [
+    'Aucun avis CRB requis',
+    'Avis préfet en attente',
+    "En cours d'instruction",
+    'Avis préfet rendu',
+] as const
+
+export type PhaseInstruction = (typeof PHASES_INSTRUCTION)[number]
+
+export function isPhaseInstruction(value: unknown): value is PhaseInstruction {
+    return PHASES_INSTRUCTION.includes(value as PhaseInstruction)
 }

@@ -62,14 +62,9 @@ export const COLUMNS = {
     commune: ['id', 'COM', 'LIBELLE', 'DEP'],
     departement: ['id', 'DEP', 'LIBELLE', 'REG'],
     region: ['id', 'REG', 'LIBELLE'],
-    demandeSubvention: [
-        'id',
-        'Nom',
-        'Programme_d_aide',
-        'Plan_d_approvisionnement',
-    ],
+    demandeSubvention: ['id', 'Programme_d_aide', 'Plan_d_approvisionnement'],
     instruction: [
-        'nom',
+        'Nom',
         'crb',
         'subvention',
         'Avis_CRB_Requis',
