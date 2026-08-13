@@ -14,35 +14,45 @@ async function getAccessToken() {
     return grist.docApi.getAccessToken({ readOnly: true })
 }
 
-async function fetchMetadata(): Promise<Map<number, AttachmentMetadata>> {
+async function fetchMetadata(
+    ids: readonly number[]
+): Promise<Map<number, AttachmentMetadata>> {
+    if (ids.length === 0) return new Map()
+
     const { baseUrl, token } = await getAccessToken()
 
-    const response = await fetch(`${baseUrl}/attachments?auth=${token}`)
-    if (!response.ok) {
-        throw new Error(
-            `Grist attachments could not be read — ${response.status} ${response.statusText}. `
-        )
-    }
+    const files = await Promise.all(
+        ids.map(async (id) => {
+            const response = await fetch(
+                `${baseUrl}/attachments/${id}?auth=${token}`
+            )
 
-    const { records } = (await response.json()) as {
-        records?: { id?: number; fields?: Record<string, unknown> }[]
-    }
+            // A cell still naming a file the document no longer stores. There
+            // is nothing to show for it and nothing to hand over.
+            if (response.status === 404) return null
 
-    return new Map(
-        (records ?? []).flatMap(({ id, fields }) =>
-            typeof id === 'number'
-                ? [
-                      [
-                          id,
-                          {
-                              name: asString(fields?.fileName),
-                              sizeInBytes: asNumber(fields?.fileSize) ?? 0,
-                          },
-                      ] as const,
-                  ]
-                : []
-        )
+            if (!response.ok) {
+                throw new Error(
+                    `Grist attachment ${id} could not be read — ${response.status} ${response.statusText}. `
+                )
+            }
+
+            const { fileName, fileSize } = (await response.json()) as {
+                fileName?: unknown
+                fileSize?: unknown
+            }
+
+            return [
+                id,
+                {
+                    name: asString(fileName),
+                    sizeInBytes: asNumber(fileSize) ?? 0,
+                },
+            ] as const
+        })
     )
+
+    return new Map(files.filter((file) => file !== null))
 }
 
 export function createGristAttachmentQuery(): AttachmentQuery {
@@ -50,30 +60,32 @@ export function createGristAttachmentQuery(): AttachmentQuery {
         async list() {
             await gristReady()
 
-            const [rows, metadata] = await Promise.all([
-                fetchRowsOnce(TABLE.attachment, COLUMNS.attachment),
-                fetchMetadata(),
-            ])
+            const rows = await fetchRowsOnce(
+                TABLE.attachment,
+                COLUMNS.attachment
+            )
 
             // One row carries a whole cell of files, all filed under the same
             // type — the domain holds one file each, so the cell is spread out
             // here rather than by every screen that lists one.
-            return rows.flatMap((row) =>
-                asIdList(row.piece_jointe).flatMap((id) => {
-                    // An id the store no longer knows has no file behind it to
-                    // name, to weigh or to hand over.
-                    const file = metadata.get(id)
-                    if (file === undefined) return []
-
-                    return {
-                        id,
-                        planDApprovisionnement:
-                            asNumber(row.Plan_d_approvisionnement) ?? 0,
-                        type: asString(row.type),
-                        ...file,
-                    }
-                })
+            const attached = rows.flatMap((row) =>
+                asIdList(row.piece_jointe).map((id) => ({
+                    id,
+                    planDApprovisionnement:
+                        asNumber(row.Plan_d_approvisionnement) ?? 0,
+                    type: asString(row.type),
+                }))
             )
+
+            const metadata = await fetchMetadata([
+                ...new Set(attached.map(({ id }) => id)),
+            ])
+
+            return attached.flatMap((attachment) => {
+                const file = metadata.get(attachment.id)
+
+                return file === undefined ? [] : { ...attachment, ...file }
+            })
         },
 
         async getFileUrl(id) {
